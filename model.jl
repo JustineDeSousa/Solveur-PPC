@@ -26,24 +26,13 @@ ops = [+, -, ==, !=, <, >, <=, >= ] #Not sure I need it
 
 
 mutable struct Constraint
-	var1::Variable
-	var2::Variable
-	couples::Array{Tuple{Int64,Int64}}
-end
-
-mutable struct Constraint
 	var::Set{Variable}
 	couples::Array{Tuple{Int64,Int64}}
 end
 
-for cstr in model1.constraints
-	if var == Set([x1,x3])
-		##What you want to do
-	end
-end
 
 mutable struct Model
-	x::Array{Variable} #Tableau de variables x[1], x[2], ...
+	variables::Array{Variable} #Tableau de variables x[1], x[2], ...
 	constraints::Array{Constraint}
 end
 
@@ -79,28 +68,27 @@ x2.value=2
 
 #Définition d'une contrainte
 couples = [ (0,0), (0,1), (1,0), (1,1) ] #x1 + x2 <= 2
-constraint1 = Constraint(x1,x2,couples)
+constraint = Constraint(Set([x1,x2]),couples)
 
 #Définition du modèle
 var = [x1, x2]
-cstr = [constraint1]
-model1 = Model(var, cstr)
+cstr = [constraint]
+model = Model(var, cstr)
 
 		
 
 #ajout d'une contrainte 
-#wrap(model1, x1, x2, (x1,x2) -> x1+x2>=3)
+#wrap(model, x1, x2, (x1,x2) -> x1+x2>=3)
 
 # function to check if the variables in the instance comply with the constraints
-function verification(instance ::Dict{Variable, Int},
-                     model::Model)
+function verification(model::Model)
         verif = true
-        for x in keys(instance)
-            for y in keys(instance)
+        for x in model.variables
+            for y in model.variables
                 if x != y
-					for cstr in model1.constraints
-						if (cstr.var1 == x && cstr.var2 == y) || (cstr.var1 == y && cstr.var2 == x)
-							if !((instance[x],instance[y]) in cstr.couples)
+					for cstr in model.constraints
+						if cstr.var == Set([x,y])
+							if !((x.value,y.value) in cstr.couples)
 								verif = false
 								break
 							end
@@ -112,54 +100,55 @@ function verification(instance ::Dict{Variable, Int},
     return verif
 end
 
-function Backtrack(instance::Dict{Variable, Int},
-                     model::Model,
-					 var_instance::Array{Variable,1},  #array with the already set variables
-					 domaine_long::Array{Int,1} ) #length of the domain of each variable
-					 
+function Backtrack(model::Model, var_instancie::Array{Variable,1})
 	global nd_numero += 1
-	if !verification(instance, model)
+	
+	
+	if !verification(model) #Si une contrainte est violée
 		return false
 	end
-	if length(keys(instance)) == length(model.x)
+	
+	if length(var_instancie) == length(model.variables)
 		print("Nombre de noeuds parcourus: ")
         println(nd_numero)
         print("Temps de résolution ")
         return true
 	end
-	variables_non_instance = setdiff(model.x, var_instance) #make a set with the variables that are not instantiated
-    next_choose = model.x[rand(1:end)] #variable to branch
-    long_nc = domaine_long[next_choose.value] #lenght of the domain of the choosen variable
-    push!(var_instance, next_choose) #add the new variable to branch to the variables instantiated
-	for val in model.x[next_choose.value].domain
-        instance[next_choose] = val #add the new value to the instance
-        Restric2 = deepcopy(domaine_long)
-        last_choose = (next_choose, val)
+	
+	variables_non_instancie = setdiff(model.variables, var_instance) #make a set with the variables that are not instantiated
+    
+	x = variables_non_instancie[rand(1:end)] #variable to branch
+    
+	push!(var_instancie, x) #add the new variable to branch to the variables instantiated
+	
+	for val in x.domain
+        x.value = val #add the new value to the instance
+        #Restric2 = deepcopy(domaine_long)
+        #last_choose = (next_choose, val)
 
-        if Backtrack(instance , model, var_instance, Restric2)
+        if Backtrack(model, var_instancie)
                      #println(arc)
-
             return true
         end
-        delete!(instance , next_choose)
+        #delete!(instance , next_choose)
     end
 
-    current_choose = pop!(var_instance)
+    #current_choose = pop!(var_instancie)
     return false
 
-    print("Nombre de noeuds parcourus: ")
-    println(nd_numero)
+    #print("Nombre de noeuds parcourus: ")
+    #println(nd_numero)
 	
 	
 end
 
 
-instance = Dict{Variable, Int}() #empty dictionary
-var_instance=Array{Variable,1}(undef,0)
-domain_long= Array{Int,1}(undef,0)
+
+var_instancie=Array{Variable,1}(undef,0)
+
 nd_numero=0
-for var in model1.x
-	push!(domain_long,length(var.domain))
+
+@time Backtrack(model, var_instancie)
+for x in model.variables
+	print(x.value, " ")
 end
-@time Backtrack(instance, model1, var_instance, domain_long)
-println(instance)
