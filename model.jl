@@ -63,7 +63,7 @@ x2 = Variable(domain1, domain1[1])
 println("Value of x1 : ", x1.value)
 x1.value = 1
 println("Value of x1 : ", x1.value)
-x2.value=2
+x2.value=0
 
 
 #Définition d'une contrainte
@@ -100,55 +100,89 @@ function verification(model::Model)
     return verif
 end
 
-function Backtrack(model::Model, var_instancie::Array{Variable,1})
+#Algorithme de forward checking
+function forward_checking!(model::Model, next_choose::Variable, var_instancie::Array{Variable,1},RestrictDom::Array{Int,1})
+        for y in setdiff(model.variables, var_instancie)
+            taille = length(y.domain)
+            Dom2 = deepcopy(y.domain)
+            ix = deepcopy(taille) + 1
+            pos_actuel = 1
+            for b in y.domain[1:taille]
+				for cstr in model.constraints
+					if Set([next_choose,y])== cstr.var
+						if !((next_choose.value,b) in cstr.couples) #if the combination of the value choosen and some value of some variable non instantiated is not in the constraints, we move that value to the end of the domain
+							splice!(Dom2, ix:(ix-1), b)
+							splice!(Dom2, pos_actuel)
+							ix -= 1
+						else
+							pos_actuel += 1
+						end
+					end
+				end
+            end
+            y.domain = Dom2 #update the domain
+            RestrictDom[findall(x->x==y,model.variables)[1]] = ix - 1 #update the lenght of the domain, to not consider the values that are not in the constraints
+        end
+    end
+
+
+function Backtrack(model::Model, var_instancie::Array{Variable,1}, domaine_long::Array{Int,1}, frwd=true)
 	global nd_numero += 1
 	
 	
 	if !verification(model) #Si une contrainte est violée
-		return false
+        print("the constraints are not verify")
+		return false	
 	end
 	
-	if length(var_instancie) == length(model.variables)
+	if length(var_instancie) == length(model.variables) #if all the variables are instantiated the problem is solved
 		print("Nombre de noeuds parcourus: ")
         println(nd_numero)
         print("Temps de résolution ")
         return true
 	end
 	
-	variables_non_instancie = setdiff(model.variables, var_instance) #make a set with the variables that are not instantiated
+	variables_non_instancie = setdiff(model.variables, var_instancie) #make a set with the variables that are not instantiated
     
-	x = variables_non_instancie[rand(1:end)] #variable to branch
+	next_choose = variables_non_instancie[rand(1:end)] #variable to branch
     
-	push!(var_instancie, x) #add the new variable to branch to the variables instantiated
+	push!(var_instancie, next_choose) #add the new variable to branch to the variables instantiated
 	
-	for val in x.domain
-        x.value = val #add the new value to the instance
-        #Restric2 = deepcopy(domaine_long)
+	for val in next_choose.domain
+        next_choose.value = val #add the new value to the instance
+        Restric2 = deepcopy(domaine_long) #we need this to select some part of the domains without change the domain in case we need that values in other branch
         #last_choose = (next_choose, val)
+		if frwd
+            forward_checking!(model, next_choose, var_instancie, Restric2) #apply forward checking
+        end
 
-        if Backtrack(model, var_instancie)
+        if Backtrack(model, var_instancie, Restric2)
                      #println(arc)
             return true
         end
         #delete!(instance , next_choose)
     end
 
-    #current_choose = pop!(var_instancie)
+    current_choose = pop!(var_instancie)
     return false
 
-    #print("Nombre de noeuds parcourus: ")
-    #println(nd_numero)
+    print("Nombre de noeuds parcourus: ")
+    println(nd_numero)
 	
 	
 end
-
 
 
 var_instancie=Array{Variable,1}(undef,0)
 
 nd_numero=0
 
-@time Backtrack(model, var_instancie)
-for x in model.variables
-	print(x.value, " ")
+restr = Int[length(v.domain) for v in model.variables]
+	
+
+@time Backtrack(model, var_instancie, restr)
+
+for x in 1:length(model.variables)
+	print("variable ",x, " ")
+	println(model.variables[x].value)
 end
