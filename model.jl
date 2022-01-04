@@ -1,14 +1,16 @@
-#EXECUTION : dans une console Julia : 
+# EXECUTION : dans une console Julia : 
 # Se déplacer vers le bon répertoire :
 # cd("D:\\M2\\PPC\\projet\\Solveur-PPC")
 # Exécuter le fichier : 
 # include("model.jl")
 
-struct Variable
+
+mutable struct Variable
 	domain::Array{Int64}
+	value::Int64
 end
 
-struct Constraint
+mutable struct Constraint
 	var1::Variable
 	var2::Variable
 	couples::Array{Tuple{Int64,Int64}}
@@ -23,8 +25,13 @@ end
 domain1 = [0,1,2,3]
 
 # Définition des variables
-x1 = Variable(domain1)
-x2 = Variable(domain1)
+x1 = Variable(domain1, domain1[1])
+x2 = Variable(domain1, domain1[1])
+
+println("Value of x1 : ", x1.value)
+x1.value = 1
+println("Value of x1 : ", x1.value)
+
 
 #Définition d'une contrainte
 couples = [ (0,0), (0,1), (1,0), (1,1) ] #x1 + x2 <= 2
