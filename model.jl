@@ -31,6 +31,17 @@ mutable struct Constraint
 	couples::Array{Tuple{Int64,Int64}}
 end
 
+mutable struct Constraint
+	var::Set{Variable}
+	couples::Array{Tuple{Int64,Int64}}
+end
+
+for cstr in model1.constraints
+	if var == Set([x1,x3])
+		##What you want to do
+	end
+end
+
 mutable struct Model
 	x::Array{Variable} #Tableau de variables x[1], x[2], ...
 	constraints::Array{Constraint}
