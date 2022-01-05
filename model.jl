@@ -42,6 +42,7 @@ function add_constraint(model, var1, var2, couples)
 	push!(model.constraints, cstr)
 end
 
+<<<<<<< Updated upstream
 function wrap(model::Model, var1::Variable, var2::Variable, constr)
 	couples = []
 	for val1 in var1.domain
@@ -49,6 +50,23 @@ function wrap(model::Model, var1::Variable, var2::Variable, constr)
 			if constr(val1,val2)
 				push!(couples, (val1,val2))
 			end
+=======
+function wrap(model::Model, (x,y)::Tuple{Variable,Variable}, constr)
+	couples = [(val_x,val_y) for val_x in x.domain for val_y in y.domain if constr(val_x,val_y)]
+	add_constraint(model, (x,y), couples)
+	return couples
+end
+
+##################################################################################
+
+##################################################################################
+# Fonctions sur le modèle
+##################################################################################
+function exists_constraint(model::Model, (x,y)::Tuple{Variable,Variable})
+	for cstr in model.constraints
+		if Set(cstr.var) == Set((x,y))
+			return true
+>>>>>>> Stashed changes
 		end
 	end
 	add_constraint(model, var1, var2, couples)
@@ -57,6 +75,7 @@ end
 # Définition du domaine
 domain1 = [0,1,2,3]
 
+<<<<<<< Updated upstream
 # Définition des variables
 x1 = Variable(domain1, domain1[1])
 x2 = Variable(domain1, domain1[1])
@@ -100,6 +119,30 @@ function verification(model::Model)
             end
         end
     return verif
+=======
+# Return the constraints concerning x
+function constraints(model::Model, x::Variable)
+	cstrs = []
+	for cstr in model.constraints
+		if x in cstr.var
+			push!(cstrs, cstr)
+		end
+	end
+	return cstrs
+end
+# Return the constraints concerning x et y
+function constraints(model::Model, x::Variable, y::Variable)
+	if x.name == y.name
+		return []
+	end
+	cstrs = []
+	for cstr in model.constraints
+		if Set((x,y)) == Set(cstr.var)
+			push!(cstrs, cstr)
+		end
+	end
+	return cstrs
+>>>>>>> Stashed changes
 end
 ###################################################################################################################
 #Algorithme of forward checking
@@ -191,6 +234,7 @@ function AC3!(model::Model,Restrict::Array{Int,1}, var_instancie::Array{Variable
               end
 end
 
+<<<<<<< Updated upstream
 
 function initAC4!(model::Model, var_instancie::Array{Variable,1}, Restrict::Array{Int,1})
         taille_Dom = maximum([length(x.domain) for x in model.variables])
@@ -311,6 +355,26 @@ function Backtrack(model::Model, var_instancie::Array{Variable,1}, domaine_long:
         end
         #delete!(instance , next_choose)
     end
+=======
+#Définition du modèle Voiture du cours
+#domain = [0,1,2] #bleu, rouge, jaune
+
+#caisse = Variable("caisse", domain)
+#enjoliveurs = Variable("enjoliveurs", domain)
+#pare_choc = Variable("pare_choc", domain)
+#capote = Variable("capote", domain)
+#println(capote)
+
+#cstr = Constraint((caisse,enjoliveurs),  [(1,1), (2,2)])
+#println(cstr)
+
+#model = Model( [caisse, enjoliveurs, pare_choc, capote], [])
+#add_constraint(model, (caisse,enjoliveurs),  [(1,1), (2,2)])
+#add_constraint(model, (caisse,pare_choc),  [(0,0), (1,1), (2,2)])
+#add_constraint(model, (capote,pare_choc),  [(0,0), (1,1), (2,2)])
+#add_constraint(model, (caisse,capote),  [(0,0), (1,2), (2,1)])
+#println(model)
+>>>>>>> Stashed changes
 
     current_choose = pop!(var_instancie)
     return false
