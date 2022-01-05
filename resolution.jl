@@ -161,7 +161,7 @@ function AC3!(model::Model)
 		cstr = pop!(aTester) #remove the last constraint of the list to test and save it in a tuple to work with
 		(x,y) = cstr.var
 		for a in x.domain
-			if !is_supported(model, x, a, y)
+			if !is_supported(cstr, x, a)
 				x.domain = filter!(x->x!=a, x.domain)
 				for cstr in constraints(model, x)
 					z = other(cstr, x)
@@ -223,67 +223,131 @@ println(model)
 @time AC3!(model)
 println(model)
 
+
+	
+
+
+# function initAC4!(model::Model, var_instancie::Array{Variable,1}, Restrict::Array{Int,1})
+	# taille_Dom = maximum([length(x.domain) for x in model.variables])
+	# Q = Array{Tuple{Variable,Int}}(undef,0)
+	# S = [Array{Tuple{Variable,Int}}(undef,0) for k in 1:length(model.variables), m in 1:taille_Dom]
+	# count = fill(0, size(Array{Int,3}(undef, length(model.variables), length(model.variables), taille_Dom)))
+	# All instanciated values get fixed to their values
+	# for x in model.variables
+		# if x in var_instancie
+			# Restrict[findall(e->e==x,model.variables)[1]] = 1
+			# position = findall(e->e==x.value, x.domain)[1]
+			# splice!(x.domain, position)
+			# splice!(x.domain, 1:0, x.value)
+		# end
+	# end
+	# for x in model.variables
+	# aux_pos_x=findall(e->e==x,model.variables)[1]
+		# for y in model.variables
+		# aux_pos_y=findall(e->e==y,model.variables)[1]
+			# if x != y
+				# for a in x.domain[1:Restrict[aux_pos_x]]
+					# total = 0
+					# for b in y.domain[1:Restrict[aux_pos_y]]
+						# if test(model, x, y, (a,b)) #if the values a and b are in the constraints we add the couple varx and value a to s(<vary,b>)
+							# total += 1
+							# push!(S[aux_pos_y,b+1], (x,a))
+						# end
+					# end
+					# count[aux_pos_x,aux_pos_y,a+1] = total #we set the counter in the amount of values that are consistent for the variable x, y with x=a
+					# if count[aux_pos_x,aux_pos_y,a+1] == 0 #if the counter is 0 we remove the value a of the domain
+						# place = Restrict[aux_pos_x] + 1
+						# position = findall(e->e==a, x.domain)[1]
+						# splice!(x.domain, place:(place-1), a)
+						# splice!(x.domain, position)
+						# Restrict[aux_pos_x] -= 1
+						# push!(Q, (x,a)) #we add the variable x and the value a (this combination is not consistant with any value of y) to the list Q
+					# end
+				# end
+			# end
+		# end
+	# end
+	# return Q, S, count
+# end
+
 #AC4
-function initAC4!(model::Model, var_instancie::Array{Variable,1}, Restrict::Array{Int,1})
-        taille_Dom = maximum([length(x.domain) for x in model.variables])
-        Q = Array{Tuple{Variable,Int}}(undef,0)
-        S = [Array{Tuple{Variable,Int}}(undef,0) for k in 1:length(model.variables), m in 1:taille_Dom]
-        count = fill(0, size(Array{Int,3}(undef, length(model.variables), length(model.variables), taille_Dom)))
-        # All instanciated values get fixed to their values
-        for x in model.variables
-            if x in var_instancie
-                Restrict[findall(e->e==x,model.variables)[1]] = 1
-                position = findall(e->e==x.value, x.domain)[1]
-                splice!(x.domain, position)
-                splice!(x.domain, 1:0, x.value)
-            end
-        end
-        for x in model.variables
-		aux_pos_x=findall(e->e==x,model.variables)[1]
-            for y in model.variables
-			aux_pos_y=findall(e->e==y,model.variables)[1]
-                if x != y
-                    for a in x.domain[1:Restrict[aux_pos_x]]
-                        total = 0
-                        for b in y.domain[1:Restrict[aux_pos_y]]
-                            if test(model, x, y, (a,b)) #if the values a and b are in the constraints we add the couple varx and value a to s(<vary,b>)
-                                total += 1
-                                push!(S[aux_pos_y,b+1], (x,a))
-                            end
-                        end
-                        count[aux_pos_x,aux_pos_y,a+1] = total #we set the counter in the amount of values that are consistent for the variable x, y with x=a
-                        if count[aux_pos_x,aux_pos_y,a+1] == 0 #if the counter is 0 we remove the value a of the domain
-                            place = Restrict[aux_pos_x] + 1
-                            position = findall(e->e==a, x.domain)[1]
-                            splice!(x.domain, place:(place-1), a)
-                            splice!(x.domain, position)
-                            Restrict[aux_pos_x] -= 1
-                            push!(Q, (x,a)) #we add the variable x and the value a (this combination is not consistant with any value of y) to the list Q
-                        end
-                    end
-                end
-            end
-        end
-        return Q, S, count
-    end
-function AC4!(model::Model,Restrict::Array{Int,1}, var_instancie::Array{Variable,1})
-	Q, S, count = initAC4!(model, var_instancie, Restrict)
-	while length(Q) != 0
+function initAC4!(model::Model)
+	println("initAC4 : ")
+	Q = []
+	S = Dict()
+	for x in model.variables
+		for a in x.domain
+			S[ (x,a) ] = []
+		end
+	end
+	count_ = Dict()
+	
+	for cstr in model.constraints
+		(x,y) = cstr.var
+		for a in x.domain
+			total = 0
+			for b in y.domain
+				if (a,b) in cstr.couples
+					total += 1
+					push!( S[(y,b)], (x,a) )
+				end
+			end
+			count_[(x,y,a)] = total
+			if count_[(x,y,a)] == 0
+				x.domain = filter!(x->x!=a, x.domain)
+				push!(Q, (x,a))
+			end
+		end
+		#do the opposite (y,x)
+	end
+	
+	return Q, S, count_
+end
+function AC4!(model::Model)
+	println("AC4 : ")
+	Q, S, count_ = initAC4!(model)
+	while !isempty(Q)
 		(y,b) = pop!(Q) #we took a couple from list Q
-		aux_pos_y=findall(e->e==y,model.variables)[1]
-		for (x,a) in S[aux_pos_y,b+1] #we take all the combinations of variable and value that are consistant with the couple from list Q
-			aux_pos_x=findall(e->e==x,model.variables)[1]
-			count[aux_pos_x,aux_pos_y,a+1] -= 1
-			if count[aux_pos_x,aux_pos_y,a+1] == 0 && a in x.domain[1:Restrict[aux_pos_x]] #if the counter is 0 and a is in the domain of x, we eliminate a from the domain and we add the couple x,a to the list Q
-				place = Restrict[aux_pos_x] + 1
-				position = find(e->e==a, x.domain)
-				splice!(x.domain, place:(place-1), a)
-				splice!(x.domain, position)
+		#aux_pos_y=findall(e->e==y,model.variables)[1]
+		for (x,a) in S[(y,b)]
+			#aux_pos_x=findall(e->e==x,model.variables)[1]
+			count_[(x,y,a)] -= 1
+			if count_[(x,y,a)] == 0 && a in x.domain
+				#place = Restrict[aux_pos_x] + 1
+				#position = find(e->e==a, x.domain)
+				#splice!(x.domain, place:(place-1), a)
+				#splice!(x.domain, position)
+				x.domain = filter!(x->x!=a, x.domain)
 				push!(Q, (x,a))
 			end
 		end
 	end
 end
+
+
+#Définition du modèle Voiture du cours
+domain = [0,1,2] #bleu, rouge, jaune
+
+caisse = Variable("caisse", domain)
+enjoliveurs = Variable("enjoliveurs", domain)
+pare_choc = Variable("pare_choc", domain)
+capote = Variable("capote", domain)
+println(capote)
+
+cstr = Constraint((caisse,enjoliveurs),  [(1,1), (2,2)])
+println(cstr)
+
+model = Model( [caisse, enjoliveurs, pare_choc, capote], [])
+add_constraint(model, (caisse,enjoliveurs),  [(1,1), (2,2)])
+add_constraint(model, (caisse,pare_choc),  [(0,0), (1,1), (2,2)])
+add_constraint(model, (capote,pare_choc),  [(0,0), (1,1), (2,2)])
+add_constraint(model, (caisse,capote),  [(0,0), (1,2), (2,1)])
+println(model)
+
+@time AC4!(model)
+println(model)
+
+
 
 
 
