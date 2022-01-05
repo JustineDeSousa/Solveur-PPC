@@ -298,7 +298,21 @@ function initAC4!(model::Model)
 				push!(Q, (x,a))
 			end
 		end
-		#do the opposite (y,x)
+		#now the same for (y,x)
+		for b in y.domain
+			total = 0
+			for a in x.domain
+				if (a,b) in cstr.couples
+					total += 1
+					push!( S[(x,a)], (y,b) )
+				end
+			end
+			count_[(y,x,b)] = total
+			if count_[(y,x,b)] == 0
+				y.domain = filter!(x->x!=a, y.domain)
+				push!(Q, (y,b))
+			end
+		end
 	end
 	
 	return Q, S, count_
