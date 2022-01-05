@@ -12,14 +12,13 @@
 # Variable
 ###################################################
 mutable struct Variable
+	name::String
 	domain::Array{Int64}
 	value::Int64
 	#Constructor that verify if the value is part of the domain
-	Variable(domain,value) = value in domain ? error("Value out of the domain") : new(domain,value)
-	Variable(domain) = new(domain,-1) #assign the value -1 if not given
+	Variable(name, domain, value) = value in domain ? error("Value out of the domain") : new(name, domain, value)
+	Variable(name, domain) = new(name, domain, -1) #assign the value -1 if not given
 end
-
-
 
 #Just a way to write x1+x2 <= 2 for the type Variable
 import Base.+, Base.-, Base.==, Base.!=, Base.<, Base.>, Base.<=, Base.>=
@@ -32,7 +31,11 @@ import Base.+, Base.-, Base.==, Base.!=, Base.<, Base.>, Base.<=, Base.>=
 	<=(x1::Variable, x2::Variable) = x1.value <= x2.value
 	>=(x1::Variable, x2::Variable) = x1.value >= x2.value
 
-ops = [+, -, ==, !=, <, >, <=, >= ] #Not sure I need it
+import Base.println
+function println(x::Variable)
+	print(x.name, ": ")
+	print(x.domain, " = ", x.value, "\n")
+end
 ###################################################
 
 ###################################################
@@ -45,12 +48,10 @@ end
 
 import Base.println
 function println(cstr::Constraint)
-	println("########## Constraint : ")
-	for x in cstr.var
-		println("\t",x)
-	end
-	println("\tCouples = ", cstr.couples)
-	println("########################")
+	println(cstr.var[1])
+	println(cstr.var[2])
+	println(cstr.couples)
+	println()
 end
 ###################################################
 
@@ -62,16 +63,17 @@ mutable struct Model
 	constraints::Array{Constraint}
 end
 
-
 function println(model::Model)
-	println("########################### Model ############################")
+	println("########## Model ##########")
+	println("## Variables : ")
 	for x in model.variables
 		println(x)
 	end
+	println("\n## Contraintes : ")
 	for cstr in model.constraints
 		println(cstr)
 	end
-	println("##############################################################")
+	println("###########################")
 end
 ###################################################
 
@@ -104,26 +106,54 @@ function exists_constraint(model::Model, (x,y)::Tuple{Variable,Variable})
 	return false
 end
 
-function is_consistent(model::Model)
-	consistent = true
-	for x in model.variables
-		if isempty(x.domain)
-			consistent = false
-			break
+
+# Return the constraints concerning x
+function constraints(model::Model, x::Variable)
+	cstrs = []
+	for cstr in model.constraints
+		if x in cstr.var
+			push!(cstrs, cstr)
 		end
 	end
-	return consistent
+	return cstrs
+end
+# Return the constraints concerning x et y
+function constraints(model::Model, x::Variable, y::Variable)
+	if x == y
+		return []
+	end
+	cstrs = []
+	for cstr in model.constraints
+		if Set((x,y)) == Set(cstr.var)
+			push!(cstrs, cstr)
+		end
+	end
+	return cstrs
 end
 
-#Définition d'un modèle
-domain = [0,1,2,3]
-x = Variable(domain)
-y = Variable(domain)
-cstr = Constraint((x,y), [(x_val,y_val) for x_val in x.domain for y_val in y.domain])
-model = Model( [x,y], [cstr])
+
+
+#Définition du modèle Voiture du cours
+domain = [0,1,2] #bleu, rouge, jaune
+
+caisse = Variable("caisse", domain)
+enjoliveurs = Variable("enjoliveurs", domain)
+pare_choc = Variable("pare_choc", domain)
+capote = Variable("capote", domain)
+println(capote)
+
+cstr = Constraint((caisse,enjoliveurs),  [(1,1), (2,2)])
+println(cstr)
+
+model = Model( [caisse, enjoliveurs, pare_choc, capote], [])
+add_constraint(model, (caisse,enjoliveurs),  [(1,1), (2,2)])
+add_constraint(model, (caisse,pare_choc),  [(0,0), (1,1), (2,2)])
+add_constraint(model, (capote,pare_choc),  [(0,0), (1,1), (2,2)])
+add_constraint(model, (caisse,capote),  [(0,0), (1,2), (2,1)])
+println(model)
 
 #ajout d'une contrainte 
-wrap(model, (x,y), (x,y) -> x+y>=3)
+#wrap(model, (x,y), (x,y) -> x+y>=3)
 
 
 

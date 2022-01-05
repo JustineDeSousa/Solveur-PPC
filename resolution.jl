@@ -12,16 +12,15 @@ include("model.jl")
 
 # function to check if the variables in the instance comply with the constraints
 function verification(model::Model)
-        verif = true
+		verif = true
         for x in model.variables
             for y in model.variables
-                if x != y
-					for cstr in model.constraints
-						if Set(cstr.var) == Set((x,y))
-							if !((x.value,y.value) in cstr.couples)
-								verif = false
-								break
-							end
+				if x != y
+					
+					for cstr in constraints(model, x, y)
+						if !((x.value,y.value) in cstr.couples)
+							verif = false
+							break
 						end                                                                
                     end
                 end
@@ -29,6 +28,7 @@ function verification(model::Model)
         end
     return verif
 end
+verification(model)
 ###################################################################################################################
 
 #Algorithme of forward checking
@@ -50,6 +50,15 @@ function forward_checking!(model::Model, var_instancie::Array{Variable,1}, x::Va
 	end
 end
 
+
+
+
+
+
+
+################################################################################################################
+###########Algorithmes ARC
+################################################################################################################
 #function to test if a couple of values are in the constraints or not
 function is_admissible(model::Model, (x,y)::Tuple{Variable,Variable}, couple::Tuple{Int,Int})
 	for cstr in model.constraints
@@ -61,38 +70,70 @@ function is_admissible(model::Model, (x,y)::Tuple{Variable,Variable}, couple::Tu
 	end
 	return false
 end
-
-function is_supported(model::Model, x::Variable, a::Int64, y::Variable)
-	for cstr in model.constraints
-		if Set(cstr.var) == Set((x,y))
-			if isempty( intersect([(a,b) for b in y.domain], cstr.couples) )
-				return false
+function is_supported(cstr::Constraint, x::Variable, a::Int64)
+	supported = false
+	if cstr.var[1] == x
+		for b in cstr.var[2].domain
+			if (a,b) in cstr.couples
+				supported = true
+				break
+			end
+		end
+	elseif cstr.var[2] == x
+		for b in cstr.var[1].domain
+			if (b,a) in cstr.couples
+				supported = true
+				break
 			end
 		end
 	end
-	return true
+	return supported
+end
+function is_consistent(model::Model)
+	consistent = true
+	for x in model.variables
+		if isempty(x.domain)
+			consistent = false
+			break
+		end
+	end
+	return consistent
 end
 
+# function is_consistent(model::Model, x::Variable, a::Int64)
+	# for cstr in constraints(model,x)
+		# if !is_consistent(cstr, x, a)
+			# x.domain = filter!(x->x!=a, x.domain)
+		# end
+	# end
+	# return false
+# end
 
-
-################################################################################################################
-###########Algorithmes ARC
-################################################################################################################
 # AC1
 function AC1!(model::Model)
+	println("AC1 : ")
 	term = false
 	while !term
 		term = true
 		for cstr in model.constraints
-			for a in cstr.var[1].domain
-				if isempty( intersect([(a,b) for b in cstr.var[2].domain], cstr.couples) )
-					pop!(cstr.var[1].domain,a)
-					term = false
+			x = cstr.var[1]
+			for a in x.domain
+				if !is_supported(cstr, x, a)
+					x.domain = filter!(x->x!=a, x.domain)
 				end
 			end
+			
+			y = cstr.var[2]
+			for b in y.domain
+				if !is_supported(cstr, y, b)
+					y.domain = filter!(x->x!=b, y.domain)
+				end
+			end	
 		end
 	end
 end
+AC1!(model)
+println(model)
 
 #AC3
 function AC3!(model::Model)
@@ -225,7 +266,7 @@ end
 #bactracking
 function Backtrack(model::Model, var_instancie::Array{Variable,1}, frwd = true, arc = "ARC3")
 	global nd_numero += 1
-	println("Backtrack : node num ", nd_numero)
+	println("Backtrack : node num ", nd_numero, ": ")
 	
 	if !verification(model) #Si une contrainte est violée
         println("the constraints are not verify")
@@ -260,7 +301,8 @@ function Backtrack(model::Model, var_instancie::Array{Variable,1}, frwd = true, 
 	end
 	
 	variables_non_instancie = setdiff(model.variables, var_instancie) #make a set with the variables that are not instantiated
-	x = variables_non_instancie[rand(1:end)] #variable to branch    
+	x = variables_non_instancie[rand(1:end)] #variable to branch   
+	print("branche sur ")
 	push!(var_instancie, x) #add the new variable to branch to the variables instantiated
 	
 	for val in x.domain
@@ -276,16 +318,18 @@ end
 #end of solver
 
 
-var_instancie=Array{Variable,1}(undef,0)
 
-nd_numero=0
+
+
+# var_instancie=Array{Variable,1}(undef,0)
+# nd_numero=0
 
 #restr = Int[length(v.domain) for v in model.variables]
 	
 
-@time Backtrack(model, var_instancie)
+# @time Backtrack(model, var_instancie, false, "none")
 
-for x in 1:length(model.variables)
-	print("variable ",x, " ")
-	println(model.variables[x].value)
-end
+# for x in 1:length(model.variables)
+	# print("variable ",x, " ")
+	# println(model.variables[x].value)
+# end
