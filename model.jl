@@ -53,6 +53,16 @@ function println(cstr::Constraint)
 	println(cstr.couples)
 	println()
 end
+function other(cstr::Constraint, x::Variable)
+	if !(x in cstr.var)
+		return false
+	end
+	if x == cstr.var[1]
+		return cstr.var[2]
+	elseif x == cstr.var[2]
+		return cstr.var[1]
+	end
+end
 ###################################################
 
 ###################################################

@@ -122,7 +122,6 @@ function AC1!(model::Model)
 					x.domain = filter!(x->x!=a, x.domain)
 				end
 			end
-			
 			y = cstr.var[2]
 			for b in y.domain
 				if !is_supported(cstr, y, b)
@@ -132,14 +131,15 @@ function AC1!(model::Model)
 		end
 	end
 end
-AC1!(model)
+@time AC1!(model)
 println(model)
 
 #AC3
 function AC3!(model::Model)
-	aTester = Array{Tuple{Variable,Variable}}(undef,0)
+	println("AC3 : ")
+	aTester = Array{Constraint}(undef,0)
 	for cstr in model.constraints
-		push!(aTester, cstr.var)
+		push!(aTester, cstr)
 	end
 	# for x in model.variables 
 	  # if x in var_instancie
@@ -158,13 +158,15 @@ function AC3!(model::Model)
 	  # end
 	# end
 	while !isempty(aTester)
-		(x,y) = pop!(aTester) #remove the last tuple of the list to test and save it in a tuple to work with
+		cstr = pop!(aTester) #remove the last constraint of the list to test and save it in a tuple to work with
+		(x,y) = cstr.var
 		for a in x.domain
 			if !is_supported(model, x, a, y)
-				pop!(x.domain,a)
-				for cstr in model.constraints
-					if Set(cstr.var) == Set((z,x)) && z!=y
-						push!(aTester, (z,x))
+				x.domain = filter!(x->x!=a, x.domain)
+				for cstr in constraints(model, x)
+					z = other(cstr, x)
+					if z!=y
+						push!(aTester, cstr)
 					end
 				end
 			end
@@ -199,6 +201,29 @@ function AC3!(model::Model)
 	end
 end
 
+#Définition du modèle Voiture du cours
+domain = [0,1,2] #bleu, rouge, jaune
+
+caisse = Variable("caisse", domain)
+enjoliveurs = Variable("enjoliveurs", domain)
+pare_choc = Variable("pare_choc", domain)
+capote = Variable("capote", domain)
+println(capote)
+
+cstr = Constraint((caisse,enjoliveurs),  [(1,1), (2,2)])
+println(cstr)
+
+model = Model( [caisse, enjoliveurs, pare_choc, capote], [])
+add_constraint(model, (caisse,enjoliveurs),  [(1,1), (2,2)])
+add_constraint(model, (caisse,pare_choc),  [(0,0), (1,1), (2,2)])
+add_constraint(model, (capote,pare_choc),  [(0,0), (1,1), (2,2)])
+add_constraint(model, (caisse,capote),  [(0,0), (1,2), (2,1)])
+println(model)
+
+@time AC3!(model)
+println(model)
+
+#AC4
 function initAC4!(model::Model, var_instancie::Array{Variable,1}, Restrict::Array{Int,1})
         taille_Dom = maximum([length(x.domain) for x in model.variables])
         Q = Array{Tuple{Variable,Int}}(undef,0)
