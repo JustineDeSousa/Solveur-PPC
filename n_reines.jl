@@ -50,7 +50,11 @@ create_constraints!(model,n)
 var_instancie=Array{Variable,1}(undef,0)
 nd_numero=0
 println("Forward checking ? true or false ?")
-frwd = convert(Bool, parse(Int64, readline(stdin)))
+ans=readline(stdin)
+if ans=="true"
+	frwd = true
+end
+
 println("Should we use an algorithme of arc consistance? (No, ARC3, ARC4)")
 ARC = readline(stdin)
 println("Which selection of variables should we use ? (random, average, domain_min, unbound)")
