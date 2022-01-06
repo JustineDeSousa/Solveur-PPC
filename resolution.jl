@@ -26,46 +26,60 @@ end
 ###################################################################################################################
 
 #Algorithme of forward checking
-# function forward_checking!(model::Model, var_instancie::Array{Variable,1}, x::Variable)
-	# x is the variable that just has been instanciated
+function forward_checking!(model::Model, var_instancie::Array{Variable,1}, x::Variable)
+	println(" ================== Forward checking ==================")
+	for cstr in constraints(model, x)
+		y = other(cstr, x)
+		if !(y in var_instancie)
+			for b in y.domain
+				#if (x.value,b) is not in the constraint we remove b from the y domain
+				if ( x==cstr.var[1] && !((x.value,b) in cstr.couples) ) || 
+				   ( x==cstr.var[2] && !((b,x.value) in cstr.couples) )
+					y.domain = filter!(z->z!=b, y.domain)
+				end
+			end			
+		end
+		println("\t", y.name, " = ", y)
+	end
+	println(" ======================================================")
+end
+function keeps_domains(model::Model, domains::Array{Any,1})
+	
+	#Save the domains for them to be restituted in case we change branch
+	for x in model.variables
+		deep_domain = deepcopy(x.domain)
+		push!(domains, deep_domain)
+	end
+end
+function back_domains(model::Model, domains::Array{Any,1})
+	# Assign back the domains to what they were before forward_checking
+	for i in 1:1:length(model.variables)
+		model.variables[i].domain = domains[i]
+	end
+end
+# function forward_checking!(model::Model, var_instancie::Array{Variable,1}, next_choose::Variable,RestrictDom::Array{Int,1})
 	# for y in setdiff(model.variables, var_instancie)
-		# for cstr in constraints(model, x,y)
-			# for b in y.domain
-				# if !((x.value,b) in cstr.couples) #if (x.value,b) is not in the constraint we remove b from the y domain
-					# y.domain = filter!(x->x!=b, y.domain)
+		# taille = length(y.domain)
+		# Dom2 = deepcopy(y.domain)
+		# ix = deepcopy(taille) + 1
+		# pos_actuel = 1
+		# for b in y.domain[1:taille]
+			# for cstr in model.constraints
+				# if Set([next_choose,y])== cstr.var
+					# if !((next_choose.value,b) in cstr.couples) #if the combination of the value choosen and some value of some variable non instantiated is not in the constraints, we move that value to the end of the domain
+						# splice!(Dom2, ix:(ix-1), b)
+						# splice!(Dom2, pos_actuel)
+						# ix -= 1
+					# else
+						# pos_actuel += 1
+					# end
 				# end
 			# end
 		# end
+		# y.domain = Dom2 #update the domain
+		# RestrictDom[findall(x->x==y,model.variables)[1]] = ix - 1 #update the lenght of the domain, to not consider the values that are not in the constraints
 	# end
 # end
-function keep_domains(model::Model, domains::Array{Array{int64}})
-	for x in model.variables
-		push!(domains, x.domain)
-	end
-end
-function forward_checking!(model::Model, var_instancie::Array{Variable,1}, next_choose::Variable, ,RestrictDom::Array{Int,1})
-	for y in setdiff(model.variables, var_instancie)
-		taille = length(y.domain)
-		Dom2 = deepcopy(y.domain)
-		ix = deepcopy(taille) + 1
-		pos_actuel = 1
-		for b in y.domain[1:taille]
-			for cstr in model.constraints
-				if Set([next_choose,y])== cstr.var
-					if !((next_choose.value,b) in cstr.couples) #if the combination of the value choosen and some value of some variable non instantiated is not in the constraints, we move that value to the end of the domain
-						splice!(Dom2, ix:(ix-1), b)
-						splice!(Dom2, pos_actuel)
-						ix -= 1
-					else
-						pos_actuel += 1
-					end
-				end
-			end
-		end
-		y.domain = Dom2 #update the domain
-		RestrictDom[findall(x->x==y,model.variables)[1]] = ix - 1 #update the lenght of the domain, to not consider the values that are not in the constraints
-	end
-end
 
 ################################################################################################################
 ###########Algorithmes ARC
@@ -276,7 +290,7 @@ function Backtrack(model::Model, var_instancie::Array{Variable,1}, selection="ra
 		AC4!(model)
 	end
 	if !is_consistent(model)
-		println("Not arc-consistante")
+		println("Not arc-consistent")
 		return false
 	else
 		println("Model is consistent")
@@ -294,15 +308,17 @@ function Backtrack(model::Model, var_instancie::Array{Variable,1}, selection="ra
 		if frwd
 			#We need to keep the domains for the ohter branches
 			domains = []
-			keep_domains(model, domains)
+			keeps_domains(model, domains)
 			forward_checking!(model, var_instancie, x)
+			# back_domains(model, domains)
+			# println(model.variables)
 			#Now I have to know when we need the domains backtrack
 			#but i need to take care of myself a little bit, eating, cleaning, showering ...
 		end
 		if Backtrack(model, var_instancie, selection, frwd, arc )
+			println("true")
 			return true
 		elseif nb_values == length(x.domain)
-			nb_values == length(x.domain)
 			x.value = -1
 			var_instancie = filter!(y->y.name!=x.name, var_instancie)
 			println(x)

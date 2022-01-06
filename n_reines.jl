@@ -8,11 +8,10 @@ include("resolution.jl")
 ##########################################################################################
 
 function crear_var_reines(n::Int64)
-	domain=Vector(1:n)
 	variables=Array{Variable,1}(undef,0)
-	for reine in domain
+	for reine in 1:1:n
 		name="Reine "*string(reine)
-		a=Variable(name,domain)
+		a=Variable(name,collect(1:n))
 		push!(variables,a)
 	end
 	return variables

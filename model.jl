@@ -48,8 +48,19 @@ mutable struct Constraint
 end
 
 function println(cstr::Constraint)
-	print(cstr.var[1], " <-> ", cstr.var[2])
+	println(cstr.var[1], " <-> ", cstr.var[2])
 	println(cstr.couples)
+end
+function which_place(cstr::Constraint, x::Variable)
+	if !(x in cstr.var)
+		return 0
+	end
+	if x == cstr.var[1]
+		return 1
+	elseif x == cstr.var[2]
+		return 2
+	end
+	return 0
 end
 function other(cstr::Constraint, x::Variable)
 	if !(x in cstr.var)
