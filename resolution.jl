@@ -237,7 +237,7 @@ function Backtrack(model::Model, var_instancie::Array{Variable,1}, selection="ra
 	end
 	
 	nd_numero += 1
-	println(" ##### node ", nd_numero, ": ")
+	println("\n ##### node ", nd_numero, ": ")
 	
 	if !verification(model, var_instancie) #Si une contrainte est violée parmi les variables déjà instanciées
         println("the constraints are not verified")
@@ -268,20 +268,26 @@ function Backtrack(model::Model, var_instancie::Array{Variable,1}, selection="ra
 	
 	
 	x = variable_selection(model,variables_non_instancie, selection) #variable to branch
-	if x.name != "end"
-		print("Branche sur ")
-		
-		for v in x.domain
-			x.value = v #add the new value to the instance
-			push!(var_instancie, x) #add the new variable to branch to the variables instantiated
+	push!(var_instancie, x) #add the new variable to branch to the variables instantiated
+	print("Branche sur ")
+	nb_values = 0
+	for v in x.domain
+		nb_values += 1
+		x.value = v #add the new value to the instance
+		println(x)
+		if Backtrack(model, var_instancie, frwd, arc)
+			return true
+		elseif nb_values == length(x.domain)
+			nb_values == length(x.domain)
+			x.value = -1
+			var_instancie = filter!(y->y.name!=x.name, var_instancie)
 			println(x)
-			if Backtrack(model, var_instancie, frwd, arc)
-				return true
-			else
-				println("pb with the value ", v, " of ", x)
-			end
 		end
 	end
+	# if nb_values == length(x.domain)
+		# x.value = -1
+		# println(x)
+	# end
     return false
 end
 #################################################################################################################
