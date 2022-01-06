@@ -26,19 +26,46 @@ end
 ###################################################################################################################
 
 #Algorithme of forward checking
-function forward_checking!(model::Model, var_instancie::Array{Variable,1}, x::Variable)
+# function forward_checking!(model::Model, var_instancie::Array{Variable,1}, x::Variable)
 	# x is the variable that just has been instanciated
+	# for y in setdiff(model.variables, var_instancie)
+		# for cstr in constraints(model, x,y)
+			# for b in y.domain
+				# if !((x.value,b) in cstr.couples) #if (x.value,b) is not in the constraint we remove b from the y domain
+					# y.domain = filter!(x->x!=b, y.domain)
+				# end
+			# end
+		# end
+	# end
+# end
+function keep_domains(model::Model, domains::Array{Array{int64}})
+	for x in model.variables
+		push!(domains, x.domain)
+	end
+end
+function forward_checking!(model::Model, var_instancie::Array{Variable,1}, next_choose::Variable, ,RestrictDom::Array{Int,1})
 	for y in setdiff(model.variables, var_instancie)
-		if exists_constraint(model, (x,y)) #Si il existe une cte entre x et y
-			for b in y.domain
-				if !((x.value,b) in cstr.couples) #if (x.value,b) is not in the constraint we remove b from the y domain
-					pop!(y.domain, b)
+		taille = length(y.domain)
+		Dom2 = deepcopy(y.domain)
+		ix = deepcopy(taille) + 1
+		pos_actuel = 1
+		for b in y.domain[1:taille]
+			for cstr in model.constraints
+				if Set([next_choose,y])== cstr.var
+					if !((next_choose.value,b) in cstr.couples) #if the combination of the value choosen and some value of some variable non instantiated is not in the constraints, we move that value to the end of the domain
+						splice!(Dom2, ix:(ix-1), b)
+						splice!(Dom2, pos_actuel)
+						ix -= 1
+					else
+						pos_actuel += 1
+					end
 				end
 			end
 		end
+		y.domain = Dom2 #update the domain
+		RestrictDom[findall(x->x==y,model.variables)[1]] = ix - 1 #update the lenght of the domain, to not consider the values that are not in the constraints
 	end
 end
-
 
 ################################################################################################################
 ###########Algorithmes ARC
@@ -85,18 +112,19 @@ function AC1!(model::Model)
 	while !term
 		term = true
 		for cstr in model.constraints
-			x = cstr.var[1]
+			(x,y) = cstr.var
 			for a in x.domain
 				if !is_supported(cstr, x, a)
+					println("(",x.name,", ", a, ") is not supported by ", y.name)
 					x.domain = filter!(x->x!=a, x.domain)
 				end
 			end
-			y = cstr.var[2]
-			for b in y.domain
-				if !is_supported(cstr, y, b)
-					y.domain = filter!(x->x!=b, y.domain)
-				end
-			end	
+			# y = cstr.var[2]
+			# for b in y.domain
+				# if !is_supported(cstr, y, b)
+					# y.domain = filter!(x->x!=b, y.domain)
+				# end
+			# end	
 		end
 	end
 end
@@ -114,10 +142,11 @@ function AC3!(model::Model)
 		(x,y) = cstr.var
 		for a in x.domain
 			if !is_supported(cstr, x, a)
+				println("(",x.name,", ", a, ") is not supported by ", y.name)
 				x.domain = filter!(x->x!=a, x.domain)
 				for cstr in constraints(model, x)
 					z = other(cstr, x)
-					if z!=y
+					if z.name!=y.name
 						push!(aTester, cstr)
 					end
 				end
@@ -157,23 +186,7 @@ function initAC4!(model::Model)
 				push!(Q, (x,a))
 			end
 		end
-		#now the same for (y,x)
-		for b in y.domain
-			total = 0
-			for a in x.domain
-				if (a,b) in cstr.couples
-					total += 1
-					push!( S[(x,a)], (y,b) )
-				end
-			end
-			count_[(y,x,b)] = total
-			if count_[(y,x,b)] == 0
-				y.domain = filter!(x->x!=a, y.domain)
-				push!(Q, (y,b))
-			end
-		end
 	end
-	
 	return Q, S, count_
 end
 
@@ -240,7 +253,7 @@ function Backtrack(model::Model, var_instancie::Array{Variable,1}, selection="ra
 	println("\n ##### node ", nd_numero, ": ")
 	
 	if !verification(model, var_instancie) #Si une contrainte est violée parmi les variables déjà instanciées
-        println("the constraints are not verified")
+        #println("the constraints are not verified")
 		return false	
 	end
 	
@@ -252,19 +265,22 @@ function Backtrack(model::Model, var_instancie::Array{Variable,1}, selection="ra
         return true
 	end
 	
-	# if arc == "ARC3"
-		# print("ARC3 ")
-        # AC3!(model)
-	# elseif arc == "ARC4"
-		# print("ARC4 ")
-		# AC4!(model, var_instancie)
-	# end
-	# if !is_consistent(model)
-		# println("Not arc-consistante")
-		# return false
-	# else
-		# println("Model is consistent")
-	# end
+	if arc == "ARC1"
+		print("ARC1 ")
+		AC1!(model)
+	elseif arc == "ARC3"
+		print("ARC3 ")
+        AC3!(model)
+	elseif arc == "ARC4"
+		print("ARC4 ")
+		AC4!(model)
+	end
+	if !is_consistent(model)
+		println("Not arc-consistante")
+		return false
+	else
+		println("Model is consistent")
+	end
 	
 	
 	x = variable_selection(model,variables_non_instancie, selection) #variable to branch
@@ -275,7 +291,15 @@ function Backtrack(model::Model, var_instancie::Array{Variable,1}, selection="ra
 		nb_values += 1
 		x.value = v #add the new value to the instance
 		println(x)
-		if Backtrack(model, var_instancie, frwd, arc)
+		if frwd
+			#We need to keep the domains for the ohter branches
+			domains = []
+			keep_domains(model, domains)
+			forward_checking!(model, var_instancie, x)
+			#Now I have to know when we need the domains backtrack
+			#but i need to take care of myself a little bit, eating, cleaning, showering ...
+		end
+		if Backtrack(model, var_instancie, selection, frwd, arc )
 			return true
 		elseif nb_values == length(x.domain)
 			nb_values == length(x.domain)
@@ -284,10 +308,6 @@ function Backtrack(model::Model, var_instancie::Array{Variable,1}, selection="ra
 			println(x)
 		end
 	end
-	# if nb_values == length(x.domain)
-		# x.value = -1
-		# println(x)
-	# end
     return false
 end
 #################################################################################################################
