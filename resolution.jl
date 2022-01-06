@@ -37,20 +37,19 @@ function forward_checking!(model::Model, var_instancie::Array{Variable,1}, x::Va
 				   ( x==cstr.var[2] && !((b,x.value) in cstr.couples) )
 					y.domain = filter!(z->z!=b, y.domain)
 				end
-			end
-			println("\t", y.name, " = ", y)
+			end			
 		end
+		println("\t", y.name, " = ", y)
 	end
 	println(" ======================================================")
 end
-function keeps_domains(model::Model)
-	domains = []
+function keeps_domains(model::Model, domains::Array{Any,1})
+	
 	#Save the domains for them to be restituted in case we change branch
 	for x in model.variables
 		deep_domain = deepcopy(x.domain)
 		push!(domains, deep_domain)
 	end
-	return domains
 end
 function back_domains(model::Model, domains::Array{Any,1})
 	# Assign back the domains to what they were before forward_checking
@@ -269,7 +268,7 @@ function Backtrack(model::Model, var_instancie::Array{Variable,1}, selection="ra
 	
 	if !verification(model, var_instancie) #Si une contrainte est violée parmi les variables déjà instanciées
         #println("the constraints are not verified")
-		return false
+		return false	
 	end
 	
 	variables_non_instancie = setdiff(model.variables, var_instancie) #make a set with the variables that are not instantiated
@@ -308,22 +307,23 @@ function Backtrack(model::Model, var_instancie::Array{Variable,1}, selection="ra
 		println(x)
 		if frwd
 			#We need to keep the domains for the ohter branches
-			domains = keeps_domains(model)
+			domains = []
+			keeps_domains(model, domains)
 			forward_checking!(model, var_instancie, x)
+			# back_domains(model, domains)
 			# println(model.variables)
-			#Now I have to know when we need the domains back²
+			#Now I have to know when we need the domains backtrack
+			#but i need to take care of myself a little bit, eating, cleaning, showering ...
 		end
 		if Backtrack(model, var_instancie, selection, frwd, arc )
+			println("true")
 			return true
-		else
-			back_domains(model, domains)
+		elseif nb_values == length(x.domain)
+			x.value = -1
+			var_instancie = filter!(y->y.name!=x.name, var_instancie)
+			println(x)
 		end
 	end
-		x.value = -1
-		var_instancie = filter!(y->y.name!=x.name, var_instancie)
-		println(x)
-	
-	
     return false
 end
 #################################################################################################################
