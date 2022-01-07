@@ -287,12 +287,35 @@ function variable_selection(model::Model,var_non_instancie::Array{Variable,1}, o
         end
     end
 
+<<<<<<< Updated upstream
 
 #####################################################################################################################
 #bactracking
 function Backtrack(model::Model, var_instancie::Array{Variable,1}, frwd = true, arc = "ARC3")
 	global nd_numero += 1
 	println("Backtrack : node num ", nd_numero, ": ")
+=======
+#bactracking : options : 
+#	-	selection : mode de selection des variables : 
+#			-	"random", "average", "domain_min", "unbound", 
+#				any other would do it in the order of variables
+#	-	root : 0(means nothing), AC3, AC4 ?
+#	- 	nodes : 0(means nothing), frwd, AC3, AC4 ?
+function Backtrack(model::Model, var_instancie::Array{Variable,1}, selection="random", root = "AC3", nodes = "frwd")
+	
+	if isempty(var_instancie) #Si on n'a pas encore commencé le backtrack
+		global nd_numero = 0
+		println(" #################### Backtrack ####################")
+		if root == "AC3"
+			AC3!(model)
+		elseif root == "AC4"
+			AC4!(model)
+		end		
+	end
+	
+	nd_numero += 1
+	println("\n ##### node ", nd_numero, ": ")
+>>>>>>> Stashed changes
 	
 	if !verification(model,var_instancie) #Si une contrainte est violée
         println("the constraints are not verify")
@@ -307,6 +330,7 @@ function Backtrack(model::Model, var_instancie::Array{Variable,1}, frwd = true, 
         return true
 	end
 	
+<<<<<<< Updated upstream
 	if !is_consistent(model)
 		return false
 	else
@@ -326,6 +350,26 @@ function Backtrack(model::Model, var_instancie::Array{Variable,1}, frwd = true, 
 	else
 		println("succes")
 	end
+=======
+#	if arc == "AC1"
+#		print("AC1 ")
+#		AC1!(model)
+#	elseif arc == "AC3"
+#		print("ARC3 ")
+#        AC3!(model)
+#	elseif arc == "AC4"
+#		print("AC4 ")
+#		println(model.variables)
+#		AC4!(model)
+#		println(model.variables)
+#	end
+#	if !is_consistent(model)
+#		println("Not arc-consistent")
+#		return false
+#	else
+#		println("Model is consistent")
+#	end
+>>>>>>> Stashed changes
 	
 	variables_non_instancie = setdiff(model.variables, var_instancie) #make a set with the variables that are not instantiated
 	x = variable_selection(model,variables_non_instancie, "random") #variable to branch   

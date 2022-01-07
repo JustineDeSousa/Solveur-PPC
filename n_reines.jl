@@ -17,6 +17,7 @@ function crear_var_reines(n::Int64)
 end
 
 function create_constraints!(model::Model,n::Int64)
+<<<<<<< Updated upstream
 			for y in model.variables
 				for x in model.variables
 					if x.name!=y.name
@@ -34,6 +35,30 @@ function create_constraints!(model::Model,n::Int64)
 					end
 				end
 			end	
+=======
+	for y in model.variables
+		for x in model.variables
+			if x.name!=y.name
+				wrap(model, (x,y), (x1,x2) -> x1!=x2)
+			end
+		end
+	end
+	for j in 1:n
+		for i in 1:j-1
+			x = model.variables[j]
+			y = model.variables[i]
+			wrap(model, (x,y), (z,t) -> abs(z-t)!=(j-i))
+		end
+	end	
+	return model
+end
+function creation_queens()
+	print("Number of Queens: ")
+	n = parse( Int64, readline(stdin) )
+	model = Model(crear_var_reines(n),[])
+	create_constraints!(model,n)
+	return model
+>>>>>>> Stashed changes
 end
 
 ############Model definition
