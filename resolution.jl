@@ -244,12 +244,22 @@ end
 	
 #####################################################################################################################
 
-#bactracking
-function Backtrack(model::Model, var_instancie::Array{Variable,1}, selection="random", frwd = true, arc = "ARC3")
+#bactracking : options : 
+#	-	selection : mode de selection des variables : 
+#			-	"random", "average", "domain_min", "unbound", 
+#				any other would do it in the order of variables
+#	-	root : 0(means nothing), AC3, AC4 ?
+#	- 	nodes : 0(means nothing), frwd, AC3, AC4 ?
+function Backtrack(model::Model, var_instancie::Array{Variable,1}, selection="random", root == "AC3", nodes = frwd)
 	
 	if isempty(var_instancie) #Si on n'a pas encore commencé le backtrack
 		global nd_numero = 0
 		println(" #################### Backtrack ####################")
+		if root == "AC3"
+			AC3!(model)
+		elseif root == "AC4"
+			AC4!(model)
+		end		
 	end
 	
 	nd_numero += 1
@@ -296,15 +306,20 @@ function Backtrack(model::Model, var_instancie::Array{Variable,1}, selection="ra
 		nb_values += 1
 		x.value = v #add the new value to the instance
 		println(x)
-		if frwd
+		if nodes == "fwrd" || nodes == "AC3" || nodes == "AC4"
 			#We need to keep the domains for the ohter branches
 			domains = keeps_domains(model)
+			if nodes == "fwrd"
 			forward_checking!(model, var_instancie, x)
-			if
+			elseif nodes == "AC3"
+				AC3!(model)
+			elseif nodes == "AC4"
+				AC4!(model)
+			end
 		end
-		if Backtrack(model, var_instancie, selection, frwd, arc )
+		if Backtrack(model, var_instancie, selection, root, nodes )
 			return true
-		elseif frwd
+		elseif nodes == "fwrd" || nodes == "AC3" || nodes == "AC4"
 			back_domains(model, domains)
 		end
 	end
@@ -316,14 +331,15 @@ function Backtrack(model::Model, var_instancie::Array{Variable,1}, selection="ra
 end
 
 function solve(model::Model)
-	print("Forward checking ? true or false ?")
-	ans=readline(stdin) 
-	ans == "true" || ans=="1" ? frwd=true : frwd = false
-	print("Arc consistancy? (0,ARC1, ARC3, ARC4)")
-	ARC = readline(stdin)
-	println("Heuristic of selection of variables ? (0(=in order), random, average, domain_min, unbound)")
-	selection = readline(stdin)
+	print("Heuristic of selection of variables ? (0(=in order), random, average, domain_min, unbound)")
+	selection = readline(stdin) 
+	print("root ? (AC3, AC4, 0(=nothing) )")
+	root = readline(stdin)
+	print("nodes ? (fwrd, AC3, AC4, 0(=nothing) )")
+	node = readline(stdin)
+	
 	var_instancie = Array{Variable,1}(undef,0)
+	
 	@time b=Backtrack(model, var_instancie, selection, frwd, ARC)
 	println("Nb de noeuds parcourus : ", nd_numero)
 	if b
