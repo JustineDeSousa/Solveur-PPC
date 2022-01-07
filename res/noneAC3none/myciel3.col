@@ -1,0 +1,4 @@
+solution = (1, 2, 1, 2, 3, 1, 2, 1, 2, 3, 4, )
+
+resolution_time = 0.015s
+is_solved = true

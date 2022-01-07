@@ -201,16 +201,16 @@ function solve_coloration_instances()
     resFolder = "res/"
 
     # Array which contains the name of the resolution methods
-    selectionMethod = ["domain_min"] #["none", "domain_min"]
-	rootMethod = ["AC4"] #["none", "AC3", "AC4"]
-	nodesMethod = ["frwd"] #["none", "fwrd", "AC3", "AC4"]
+    selectionMethod = ["none", "domainMin"]
+	rootMethod = ["none", "AC3", "AC4"]
+	nodesMethod = ["none", "fwrd", "AC3", "AC4"]
 	
     # Array which contains the result folder of each resolution method
     resolutionFolder = []
 	for s in selectionMethod
 		for r in rootMethod
 			for n in rootMethod
-				push!( resolutionFolder, resFolder * s * "_" * r * "_" * n)
+				push!( resolutionFolder, resFolder * s * r * n)
 			end
 		end
 	end
