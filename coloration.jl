@@ -39,10 +39,10 @@ function creation_variables(n::Int,domain::Int)
 	return variables
 end
 function creation_constraints!(model::Model,arcs::Array{Tuple{String,String},1})
-	for var_x in model.variables
-		for var_y in model.variables
-			if (var_x.name!=var_y.name) && (var_x.name,var_y.name) in arcs
-				wrap(model, (var_x,var_y), (a,b) -> a!=b)
+	for x in model.variables
+		for y in model.variables
+			if (x!=y) && (x.name,y.name) in arcs
+				wrap(model, (x,y), (z,t) -> z.value!=t.value)
 			end
 		end
 	end

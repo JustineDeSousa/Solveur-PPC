@@ -11,7 +11,7 @@ include("model.jl")
 function verification(model::Model, var_instancie::Array{Variable,1})
 	for x in var_instancie
 		for y in var_instancie
-			if x.name != y.name
+			if x != y
 				for cstr in constraints(model, x, y)
 					if !((x.value,y.value) in cstr.couples)
 						println("(", x.name, ", ", y.name, ") = (", x.value, ", ", y.value, ") isnt in the constraint")
@@ -35,7 +35,7 @@ function forward_checking!(model::Model, var_instancie::Array{Variable,1}, x::Va
 				#if (x.value,b) is not in the constraint we remove b from the y domain
 				if ( x==cstr.var[1] && !((x.value,b) in cstr.couples) ) || 
 				   ( x==cstr.var[2] && !((b,x.value) in cstr.couples) )
-					y.domain = filter!(z->z!=b, y.domain)
+					y.domain = filter!(v->v!=b, y.domain)
 				end
 			end
 			#println("\t", y.name, " = ", y)
@@ -89,7 +89,7 @@ end
 #function to test if a couple of values are in the constraints or not
 function is_admissible(model::Model, (x,y)::Tuple{Variable,Variable}, couple::Tuple{Int,Int})
 	for cstr in model.constraints
-		if Set((x,y)) == Set(cstr.var)
+		if (x,y) == cstr.var
 			if (couple in cstr.couples)
 				return true
 			end
@@ -123,7 +123,7 @@ function AC1!(model::Model)
 			for a in x.domain
 				if !is_supported(cstr, x, a)
 					println("(",x.name,", ", a, ") is not supported by ", y.name)
-					x.domain = filter!(x->x!=a, x.domain)
+					x.domain = filter!(v->v!=a, x.domain)
 				end
 			end
 		end
@@ -147,7 +147,7 @@ function AC3!(model::Model)
 				x.domain = filter!(x->x!=a, x.domain)
 				for cstr in constraints(model, x)
 					z = other(cstr, x)
-					if z.name!=y.name
+					if z != y
 						push!(aTester, cstr)
 					end
 				end
@@ -184,7 +184,7 @@ function initAC4!(model::Model)
 			count_[(x,y,a)] = total
 			if count_[(x,y,a)] == 0
 				println("(",x.name,", ", a, ") is not supported by ", y.name)
-				x.domain = filter!(x->x!=a, x.domain)
+				x.domain = filter!(v->v!=a, x.domain)
 				push!(Q, (x,a))
 			end
 		end
@@ -201,7 +201,7 @@ function AC4!(model::Model)
 			count_[(x,y,a)] -= 1
 			if count_[(x,y,a)] == 0 && a in x.domain
 				println("(",x.name,", ", a, ") is not supported by ", y.name)
-				x.domain = filter!(x->x!=a, x.domain)
+				x.domain = filter!(v->v!=a, x.domain)
 				push!(Q, (x,a))
 			end
 		end
@@ -212,7 +212,6 @@ end
 ############Heuristiques to branch
 ###################################################################################################################
 function variable_selection(model::Model,var_non_instancie::Array{Variable,1}, option)
-
 	if option == "random"
 		r = var_non_instancie[rand(1:end)]
 		return r
@@ -324,7 +323,7 @@ function Backtrack(model::Model, var_instancie::Array{Variable,1}, selection="ra
 		end
 	end
 	x.value = -1
-	var_instancie = filter!(y->y.name!=x.name, var_instancie)
+	var_instancie = filter!(y->y!=x, var_instancie)
 	println(x)
 	
     return false

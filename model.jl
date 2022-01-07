@@ -20,17 +20,10 @@ mutable struct Variable
 	Variable(name, domain) = new(name, domain, -1) #assign the value -1 if not given
 end
 
-#Just a way to write x1+x2 <= 2 for the type Variable
-import Base.+, Base.-, Base.==, Base.!=, Base.<, Base.>, Base.<=, Base.>=
-	+(x1::Variable, x2::Variable) = x1.value + x2.value
-	-(x1::Variable, x2::Variable) = x1.value - x2.value
-	==(x1::Variable, x2::Variable) = x1.value == x2.value
-	!=(x1::Variable, x2::Variable) = x1.value != x2.value
-	<(x1::Variable, x2::Variable) = x1.value < x2.value
-	>(x1::Variable, x2::Variable) = x1.value > x2.value
-	<=(x1::Variable, x2::Variable) = x1.value <= x2.value
-	>=(x1::Variable, x2::Variable) = x1.value >= x2.value
-
+import Base.==, Base.!=
+	==(x::Variable, y::Variable) = x.name == y.name
+	!=(x::Variable, y::Variable) = x.name != y.name
+	
 import Base.println
 function println(x::Variable)
 	print(x.name, ": ")
@@ -154,12 +147,12 @@ function constraints(model::Model, x::Variable)
 end
 # Return the constraints concerning x et y
 function constraints(model::Model, x::Variable, y::Variable)
-	if x.name == y.name
+	if x == y
 		return []
 	end
 	cstrs = []
 	for cstr in model.constraints
-		if Set((x,y)) == Set(cstr.var)
+		if (x,y) == cstr.var
 			push!(cstrs, cstr)
 		end
 	end
@@ -171,7 +164,7 @@ end
 
 
 #ajout d'une contrainte 
-#wrap(model, (x,y), (x,y) -> x+y>=3)
+#wrap(model, (x,y), (x,y) -> x.value+y.value>=3)
 
 
 
