@@ -23,17 +23,17 @@ function graphe(filename)
 			end
 		end
 	end
-	return n, m, arcs, nb_col=10 #A changer
+	return n, m, arcs
 end
 
 #######################################################################################
 #Model
 #######################################################################################
-function creation_variables(n::Int,nb_col::Int)
+function creation_variables(n::Int,domain::Int)
 	variables=Array{Variable,1}(undef,0)
 	for node in 1:n
 		name = string(node)
-		a=Variable(name,collect(1:nb_col))
+		a=Variable(name,collect(1:domain))
 		push!(variables,a)
 	end
 	return variables
@@ -47,21 +47,21 @@ function creation_constraints!(model::Model,arcs::Array{Tuple{String,String},1})
 		end
 	end
 end
-function creation_coloration(instance::String)
-	n, m, arcs, nb_col = graphe("instances/$instance")
+function creation_coloration()
+	println("Insert name of file")
+	instance = readline(stdin)
+	n, m, arcs = graphe("instances/$instance")
+	print("How many colors?")
+	domain = parse(Int64, readline(stdin))
 	#domain=10
-	variables = creation_variables(n,nb_col)
+	variables = creation_variables(n,domain)
 	model = Model(variables,[])
 	creation_constraints!(model,arcs)
 	return model
 end
 
 ###### Def model
-# println("Insert name of file")
-# instance = readline(stdin)
-# model = creation_coloration(instance)
+model = creation_coloration()
 
 ###### Solve
-# solve(model)
-
-solve_coloration_instances()
+solve(model)

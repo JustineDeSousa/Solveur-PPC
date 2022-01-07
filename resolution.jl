@@ -2,7 +2,6 @@
 # include("resolution.jl")
 
 include("model.jl")
-include("in_out.jl")
 
 ###################################################################################################################
 #Beginning of the solver
@@ -273,8 +272,8 @@ function Backtrack(model::Model, var_instancie::Array{Variable,1}, selection="ra
 	variables_non_instancie = setdiff(model.variables, var_instancie) #make a set with the variables that are not instantiated
 	
 	if isempty(variables_non_instancie) #if all the variables are instantiated the problem is solved
-		model.solved = true
 		println("Nombre de noeuds parcourus: ", nd_numero)
+        print("Temps de résolution ")
         return true
 	end
 	
@@ -318,98 +317,25 @@ function Backtrack(model::Model, var_instancie::Array{Variable,1}, selection="ra
     return false
 end
 
-function solve!(model::Model, selection="0", root="AC4", nodes="fwrd")
+function solve(model::Model)
+	print("Heuristic of selection of variables ? (0(=in order), random, average, domain_min, unbound)")
+	selection = readline(stdin) 
+	print("root ? (AC3, AC4, 0(=nothing) )")
+	root = readline(stdin)
+	print("nodes ? (fwrd, AC3, AC4, 0(=nothing) )")
+	nodes = readline(stdin)
+	
 	var_instancie = Array{Variable,1}(undef,0)
 	
-	starting_time = time()
-	
-	b=Backtrack(model, var_instancie, selection, root, nodes)
-	
+	@time b=Backtrack(model, var_instancie, selection, root, nodes)
 	println("Nb de noeuds parcourus : ", nd_numero)
-	
-	model.resolution_time = time() - starting_time
-	write_solution(stdout,model)
-	return b
-end
-"""
-Solve all the instances contained in "../data" through CPLEX and heuristics
-
-The results are written in "../res/cplex" and "../res/heuristic"
-
-Remark: If an instance has previously been solved (either by cplex or the heuristic) it will not be solved again
-"""
-function solve_coloration_instances()
-
-    dataFolder = "instances/"
-    resFolder = "res/"
-
-    # Array which contains the name of the resolution methods
-    selectionMethod = ["none", "domain_min"]
-	rootMethod = ["none", "AC3", "AC4"]
-	nodesMethod = ["none", "fwrd", "AC3", "AC4"]
-	
-    # Array which contains the result folder of each resolution method
-    resolutionFolder = []
-	for s in selectionMethod
-		for r in rootMethod
-			for n in rootMethod
-				push!( resolutionFolder, resFolder * s * "_" * r * "_" * n)
-			end
-		end
+	if b
+		affiche_solution(model)
+		return true
+	else
+		println("No solution found")
+		return false
 	end
-
-    # Create each result folder if it does not exist
-    for folder in resolutionFolder
-        if !isdir(folder)
-			println(folder)
-            mkdir(folder)
-        end
-    end
-            
-    global isOptimal = false
-    global resolutionTime = -1
-
-    # For each instance
-    # (for each file in folder data_folder which ends by ".col")
-    for file in filter(x->occursin(".col", x), readdir(dataFolder))
-        println("-- Resolution of ", file)
-        model = creation_coloration(file)
-        
-        # For each resolution method
-        for methodId in 1:size(resolutionFolder, 1)
-            outputFile = resolutionFolder[methodId] * "/" * file
-            # If the instance has not already been solved by this method
-            if !isfile(outputFile)
-                fout = open(outputFile, "w")  
-				
-                resolutionTime = -1
-                isOptimal = false
-
-				# Start a chronometer 
-				startingTime = time()
-				
-				# While the grid is not solved and less than 100 seconds are elapsed
-				while !isOptimal && resolutionTime < 100
-					solve!(model)
-					isOptimal  = model.solved
-					
-					# Stop the chronometer
-					resolutionTime = time() - startingTime
-				end
-				# Write the solution
-				write_solution(fout,model)
-                close(fout)
-            end
-
-
-            # Display the results obtained with the method on the current instance
-
-            include("../"*outputFile)
-
-            println(resolutionMethod[methodId], " optimal: ", isOptimal)
-            println(resolutionMethod[methodId], " time: " * string(round(resolutionTime, sigdigits=2)) * "s\n")
-        end         
-    end 
 end
 
 #################################################################################################################
