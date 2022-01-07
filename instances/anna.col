@@ -1,7 +1,7 @@
 c FILE: anna.col
 c Translated from Stanford GraphBase File: anna.gb
 c Stanford GraphBase ID: book(?anna?,138,0,1,239,0,0,0)
-p edge 138 986
+p edge 138 986 11
 e 1 36
 e 2 45
 e 3 74
