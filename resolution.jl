@@ -249,7 +249,7 @@ end
 #				any other would do it in the order of variables
 #	-	root : 0(means nothing), AC3, AC4 ?
 #	- 	nodes : 0(means nothing), frwd, AC3, AC4 ?
-function Backtrack(model::Model, var_instancie::Array{Variable,1}, selection="random", root == "AC3", nodes = frwd)
+function Backtrack(model::Model, var_instancie::Array{Variable,1}, selection="random", root="AC3", nodes="frwd")
 	
 	if isempty(var_instancie) #Si on n'a pas encore commencé le backtrack
 		global nd_numero = 0
@@ -277,18 +277,6 @@ function Backtrack(model::Model, var_instancie::Array{Variable,1}, selection="ra
         return true
 	end
 	
-	if arc == "ARC1"
-		print("ARC1 ")
-		AC1!(model)
-	elseif arc == "ARC3"
-		print("ARC3 ")
-        AC3!(model)
-	elseif arc == "ARC4"
-		print("ARC4 ")
-		println(model.variables)
-		AC4!(model)
-		println(model.variables)
-	end
 	if !is_consistent(model)
 		println("Not arc-consistent")
 		return false
@@ -335,11 +323,11 @@ function solve(model::Model)
 	print("root ? (AC3, AC4, 0(=nothing) )")
 	root = readline(stdin)
 	print("nodes ? (fwrd, AC3, AC4, 0(=nothing) )")
-	node = readline(stdin)
+	nodes = readline(stdin)
 	
 	var_instancie = Array{Variable,1}(undef,0)
 	
-	@time b=Backtrack(model, var_instancie, selection, frwd, ARC)
+	@time b=Backtrack(model, var_instancie, selection, root, nodes)
 	println("Nb de noeuds parcourus : ", nd_numero)
 	if b
 		affiche_solution(model)

@@ -1,3 +1,6 @@
+# cd("D:\\M2\\PPC\\projet\\Solveur-PPC")
+# include("cars.jl")
+
 include("resolution.jl")
 
 #Définition du modèle Voiture du cours
