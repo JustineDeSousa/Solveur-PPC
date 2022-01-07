@@ -34,7 +34,7 @@ import Base.+, Base.-, Base.==, Base.!=, Base.<, Base.>, Base.<=, Base.>=
 import Base.println
 function println(x::Variable)
 	print(x.name, ": ")
-	print(x.domain)
+	#print(x.domain)
 	x.value == -1 ? println(" = __") : println(" = ", x.value)
 end
 ###################################################
@@ -84,11 +84,11 @@ end
 
 function println(model::Model)
 	println("########## Model ##########")
-	println("## Variables : ")
+	println("## ", length(model.variables), " variables : ")
 	for x in model.variables
 		println(x)
 	end
-	println("\n## Contraintes : ")
+	println("\n## ", length(model.constraints), " contraintes : ")
 	for cstr in model.constraints
 		println(cstr)
 	end
@@ -125,7 +125,12 @@ end
 ##################################################################################
 # Fonctions sur le modèle
 ##################################################################################
-
+function affiche_solution(model::Model)
+	println(" ########## Solution : ")
+	for x in model.variables
+		println(x)
+	end
+end
 # is there a constraint between x et y
 function exists_constraint(model::Model, (x,y)::Tuple{Variable,Variable})
 	for cstr in model.constraints
@@ -163,24 +168,7 @@ end
 ##################################################################################
 
 
-#Définition du modèle Voiture du cours
-# domain = [0,1,2] #bleu, rouge, jaune
 
-# caisse = Variable("caisse", domain)
-# enjoliveurs = Variable("enjoliveurs", domain)
-# pare_choc = Variable("pare_choc", domain)
-# capote = Variable("capote", domain)
-# println(capote)
-
-# cstr = Constraint((caisse,enjoliveurs),  [(1,1), (2,2)])
-# println(cstr)
-
-# model = Model( [caisse, enjoliveurs, pare_choc, capote], [])
-# add_constraint(model, (caisse,enjoliveurs),  [(1,1), (2,2)])
-# add_constraint(model, (caisse,pare_choc),  [(0,0), (1,1), (2,2)])
-# add_constraint(model, (capote,pare_choc),  [(0,0), (1,1), (2,2)])
-# add_constraint(model, (caisse,capote),  [(0,0), (1,2), (2,1)])
-# println(model)
 
 #ajout d'une contrainte 
 #wrap(model, (x,y), (x,y) -> x+y>=3)

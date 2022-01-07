@@ -6,7 +6,6 @@ include("resolution.jl")
 ##########################################################################################
 ##Model
 ##########################################################################################
-
 function crear_var_reines(n::Int64)
 	variables=Array{Variable,1}(undef,0)
 	for reine in 1:1:n
@@ -16,7 +15,6 @@ function crear_var_reines(n::Int64)
 	end
 	return variables
 end
-
 function create_constraints!(model::Model,n::Int64)
 	for y in model.variables
 		for x in model.variables
@@ -32,35 +30,18 @@ function create_constraints!(model::Model,n::Int64)
 			wrap(model, (a,b), (a,b) -> abs(a-b)!=(j-i))
 		end
 	end	
+	return model
 end
-
-############Model definition
-#Parameters
-print("Number of Queens: ")
-N = readline(stdin)
-n = parse(Int64, N)
-
-#variables
-variables=crear_var_reines(n)
-#Model
-model=Model(variables,[])
-#add constraints
-create_constraints!(model,n)
-# Solve
-var_instancie=Array{Variable,1}(undef,0)
-nd_numero=0
-println("Forward checking ? true or false ?")
-ans=readline(stdin)
-if ans=="true"
-	frwd = true
+function creation_queens()
+	print("Number of Queens: ")
+	n = parse( Int64, readline(stdin) )
+	model = Model(crear_var_reines(n),[])
+	create_constraints!(model,n)
+	return model
 end
+############ Model definition
+model = creation_queens()
 
-println("Should we use an algorithme of arc consistance? (No, ARC3, ARC4)")
-ARC = readline(stdin)
-println("Which selection of variables should we use ? (random, average, domain_min, unbound)")
-selection = readline(stdin)
+############ Solve
+solve(model)
 
-@time Backtrack(model, var_instancie, selection, frwd, ARC)
-for var in model.variables
-	println(var)
-end

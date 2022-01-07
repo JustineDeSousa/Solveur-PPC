@@ -38,7 +38,7 @@ function forward_checking!(model::Model, var_instancie::Array{Variable,1}, x::Va
 					y.domain = filter!(z->z!=b, y.domain)
 				end
 			end
-			println("\t", y.name, " = ", y)
+			#println("\t", y.name, " = ", y)
 		end
 	end
 	println(" ======================================================")
@@ -101,19 +101,11 @@ end
 # Is the value a of x supported by the other variable y of the constraint ?
 function is_supported(cstr::Constraint, x::Variable, a::Int64)
 	supported = false
-	if cstr.var[1] == x
-		for b in cstr.var[2].domain
-			if (a,b) in cstr.couples
-				supported = true
-				break
-			end
-		end
-	elseif cstr.var[2] == x
-		for b in cstr.var[1].domain
-			if (b,a) in cstr.couples
-				supported = true
-				break
-			end
+	for b in x.domain
+		if (cstr.var[1] == x && (a,b) in cstr.couples) ||
+		   (cstr.var[2] == x && (b,a) in cstr.couples )
+			supported = true
+			break
 		end
 	end
 	return supported
@@ -134,12 +126,6 @@ function AC1!(model::Model)
 					x.domain = filter!(x->x!=a, x.domain)
 				end
 			end
-			# y = cstr.var[2]
-			# for b in y.domain
-				# if !is_supported(cstr, y, b)
-					# y.domain = filter!(x->x!=b, y.domain)
-				# end
-			# end	
 		end
 	end
 end
@@ -197,6 +183,7 @@ function initAC4!(model::Model)
 			end
 			count_[(x,y,a)] = total
 			if count_[(x,y,a)] == 0
+				println("(",x.name,", ", a, ") is not supported by ", y.name)
 				x.domain = filter!(x->x!=a, x.domain)
 				push!(Q, (x,a))
 			end
@@ -213,6 +200,7 @@ function AC4!(model::Model)
 		for (x,a) in S[(y,b)]
 			count_[(x,y,a)] -= 1
 			if count_[(x,y,a)] == 0 && a in x.domain
+				println("(",x.name,", ", a, ") is not supported by ", y.name)
 				x.domain = filter!(x->x!=a, x.domain)
 				push!(Q, (x,a))
 			end
@@ -288,7 +276,9 @@ function Backtrack(model::Model, var_instancie::Array{Variable,1}, selection="ra
         AC3!(model)
 	elseif arc == "ARC4"
 		print("ARC4 ")
+		println(model.variables)
 		AC4!(model)
+		println(model.variables)
 	end
 	if !is_consistent(model)
 		println("Not arc-consistent")
@@ -310,38 +300,40 @@ function Backtrack(model::Model, var_instancie::Array{Variable,1}, selection="ra
 			#We need to keep the domains for the ohter branches
 			domains = keeps_domains(model)
 			forward_checking!(model, var_instancie, x)
-			# println(model.variables)
-			#Now I have to know when we need the domains back²
+			if
 		end
 		if Backtrack(model, var_instancie, selection, frwd, arc )
 			return true
-		else
+		elseif frwd
 			back_domains(model, domains)
 		end
 	end
-		x.value = -1
-		var_instancie = filter!(y->y.name!=x.name, var_instancie)
-		println(x)
-	
+	x.value = -1
+	var_instancie = filter!(y->y.name!=x.name, var_instancie)
+	println(x)
 	
     return false
 end
+
+function solve(model::Model)
+	print("Forward checking ? true or false ?")
+	ans=readline(stdin) 
+	ans == "true" || ans=="1" ? frwd=true : frwd = false
+	print("Arc consistancy? (0,ARC1, ARC3, ARC4)")
+	ARC = readline(stdin)
+	println("Heuristic of selection of variables ? (0(=in order), random, average, domain_min, unbound)")
+	selection = readline(stdin)
+	var_instancie = Array{Variable,1}(undef,0)
+	@time b=Backtrack(model, var_instancie, selection, frwd, ARC)
+	println("Nb de noeuds parcourus : ", nd_numero)
+	if b
+		affiche_solution(model)
+		return true
+	else
+		println("No solution found")
+		return false
+	end
+end
+
 #################################################################################################################
 #end of solver
-
-
-
-
-
-# var_instancie=Array{Variable,1}(undef,0)
-# nd_numero=0
-
-#restr = Int[length(v.domain) for v in model.variables]
-	
-
-# @time Backtrack(model, var_instancie, false, "none")
-
-# for x in 1:length(model.variables)
-	# print("variable ",x, " ")
-	# println(model.variables[x].value)
-# end
