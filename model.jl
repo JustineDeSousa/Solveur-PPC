@@ -157,6 +157,24 @@ function constraints(model::Model, x::Variable, y::Variable)
 	end
 	return cstrs
 end
+#return the number of couples for a value in x domain
+function number_constr(model::Model, x::Variable)
+	cpls = []
+	for val in x.domain
+		values=[]	
+		for cstr in model.constraints
+			if x in cstr.var
+				for couple in cstr.couples
+					if val in couple
+						push!(values, couple)
+					end
+				end
+			end
+		end
+		push!(cpls, (val,length(values)))
+	end
+	return cpls
+end
 ##################################################################################
 
 
