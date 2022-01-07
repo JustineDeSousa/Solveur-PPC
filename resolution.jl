@@ -40,6 +40,55 @@ function variable_selection(model::Model,var_non_instancie::Array{Variable,1}, o
 		return var_non_instancie[1]
 	end
 end
+"""
+Branchement sur les valeurs
+	-	option : min_conflict, max_conflict, other(=in the order of the variables)
+"""
+
+function value_selection!(model::Model, var_non_instancie::Array{Variable,1}, option)	
+	if option == "min_conflict"
+		for x in var_non_instancie
+			domains=[]
+			cstr=number_constr(model, x)
+			#println("cstr",cstr)
+			while !isempty(cstr)
+				max=cstr[1]
+				for i in cstr
+					#println("max",max)
+					if i[2]<max[2]
+						max=i
+					end
+				end
+				cstr=filter!(v->v!=max, cstr)
+				#println("vacio ", isempty(cstr))
+				push!(domains,max[1])	
+			end
+			x.domain=domains
+		end
+	
+	elseif option=="max_conflict"	
+		for x in var_non_instancie
+			domains=[]
+			cstr=number_constr(model, x)
+			#println("cstr",cstr)
+			while !isempty(cstr)
+				min=cstr[1]
+				for i in cstr
+					#println("max",max)
+					if i[2]<min[2]
+						min=i
+					end
+				end
+				cstr=filter!(v->v!=min, cstr)
+				#println("vacio ", isempty(cstr))
+				push!(domains,min[1])	
+			end
+			x.domain=domains
+		end	
+	end
+	return true
+end	
+
 	
 #####################################################################################################################	
 #####################################################################################################################
@@ -52,7 +101,7 @@ bactracking : options :
 	-	root : 0(means nothing), AC3, AC4 ?
 	- 	nodes : 0(means nothing), frwd, AC3, AC4 ?
 """
-function Backtrack(model::Model, var_instancie::Array{Variable,1}, selection="random", root="AC3", nodes="frwd")
+function Backtrack(model::Model, var_instancie::Array{Variable,1}, selection="random", root="AC3", nodes="frwd",value_selection="min_conflict")
 	
 	if isempty(var_instancie) #Si on n'a pas encore commencé le backtrack
 		global nd_numero = 0
@@ -94,6 +143,7 @@ function Backtrack(model::Model, var_instancie::Array{Variable,1}, selection="ra
 	push!(var_instancie, x) #add the new variable to branch to the variables instantiated
 	#print("Branche sur ")
 	nb_values = 0
+	value_selection!(model, variables_non_instancie, value_selection)
 	for v in x.domain
 		nb_values += 1
 		x.value = v #add the new value to the instance
@@ -125,12 +175,12 @@ end
 """
 Solve one instance
 """
-function solve!(model::Model, selection="0", root="AC4", nodes="fwrd")
+function solve!(model::Model, selection="0", root="AC4", nodes="fwrd", value_selection="min_conflict")
 	var_instancie = Array{Variable,1}(undef,0)
 	
 	starting_time = time()
 	
-	b=Backtrack(model, var_instancie, selection, root, nodes)
+	b=Backtrack(model, var_instancie, selection, root, nodes, value_selection)
 	
 	println("Nb de noeuds parcourus : ", nd_numero)
 	
