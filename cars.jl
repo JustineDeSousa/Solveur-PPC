@@ -23,7 +23,7 @@ function creation_constraints!(model::Model)
 	add_constraint(model, (pare_choc,caisse),  [(1,1), (2,2), (3,3)])
 	add_constraint(model, (capote,pare_choc),  [(1,1), (2,2), (3,3)])
 	add_constraint(model, (pare_choc,capote),  [(1,1), (2,2), (3,3)])
-	add_constraint(model, (caisse,capote),  [(2,1), (2,3), (3,2)])
+	add_constraint(model, (caisse,capote),  [(1,1), (2,3), (3,2)])
 	add_constraint(model, (capote,caisse),  [(1,1), (2,3), (3,2)])
 	return model
 end

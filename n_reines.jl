@@ -18,8 +18,8 @@ end
 function create_constraints!(model::Model,n::Int64)
 	for y in model.variables
 		for x in model.variables
-			if x.name!=y.name
-				wrap(model, (x,y), (x1,x2) -> x1.value!=x2.value)
+			if x!=y
+				wrap(model, (x,y), (a,b) -> a!=b)
 			end
 		end
 	end
@@ -27,7 +27,7 @@ function create_constraints!(model::Model,n::Int64)
 		for i in 1:j-1
 			x = model.variables[j]
 			y = model.variables[i]
-			wrap(model, (x,y), (z,t) -> abs(z.value-t.value)!=(j-i))
+			wrap(model, (x,y), (a,b) -> abs(a-b)!=(j-i))
 		end
 	end	
 	return model

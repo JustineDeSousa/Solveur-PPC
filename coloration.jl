@@ -42,7 +42,7 @@ function creation_constraints!(model::Model,arcs::Array{Tuple{String,String},1})
 	for x in model.variables
 		for y in model.variables
 			if (x!=y) && (x.name,y.name) in arcs
-				wrap(model, (x,y), (z,t) -> z.value!=t.value)
+				wrap(model, (x,y), (a,b) -> a!=b)
 			end
 		end
 	end

@@ -41,7 +41,7 @@ mutable struct Constraint
 end
 
 function println(cstr::Constraint)
-	println(cstr.var[1], " <-> ", cstr.var[2])
+	println(cstr.var[1], " -> ", cstr.var[2])
 	println(cstr.couples)
 end
 function which_place(cstr::Constraint, x::Variable)
@@ -109,7 +109,7 @@ function add_constraint(model, z::Tuple{Variable,Variable}, couples)
 end
 
 function wrap(model::Model, (x,y)::Tuple{Variable,Variable}, constr)
-	couples = [(val_x,val_y) for val_x in x.domain for val_y in y.domain if constr(val_x,val_y)]
+	couples = [(a,b) for a in x.domain for b in y.domain if constr(a,b)]
 	add_constraint(model, (x,y), couples)
 	return couples
 end
@@ -127,7 +127,7 @@ end
 # is there a constraint between x et y
 function exists_constraint(model::Model, (x,y)::Tuple{Variable,Variable})
 	for cstr in model.constraints
-		if Set(cstr.var) == Set((x,y))
+		if cstr.var == (x,y)
 			return true
 		end
 	end
@@ -164,7 +164,7 @@ end
 
 
 #ajout d'une contrainte 
-#wrap(model, (x,y), (x,y) -> x.value+y.value>=3)
+#wrap(model, (x,y), (x,y) -> x+y>=3)
 
 
 
