@@ -37,4 +37,5 @@ end
 model = creation_cars()
 
 ######## solve ########
-solve(model)
+solve!(model, "0", "AC3", "fwrd", "min_conflict")
+println(model.variables)

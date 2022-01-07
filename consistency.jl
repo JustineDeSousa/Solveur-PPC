@@ -51,29 +51,7 @@ function back_domains(model::Model, domains::Array{Any,1})
 		model.variables[i].domain = domains[i]
 	end
 end
-# function forward_checking!(model::Model, var_instancie::Array{Variable,1}, next_choose::Variable,RestrictDom::Array{Int,1})
-	# for y in setdiff(model.variables, var_instancie)
-		# taille = length(y.domain)
-		# Dom2 = deepcopy(y.domain)
-		# ix = deepcopy(taille) + 1
-		# pos_actuel = 1
-		# for b in y.domain[1:taille]
-			# for cstr in model.constraints
-				# if Set([next_choose,y])== cstr.var
-					# if !((next_choose.value,b) in cstr.couples) #if the combination of the value choosen and some value of some variable non instantiated is not in the constraints, we move that value to the end of the domain
-						# splice!(Dom2, ix:(ix-1), b)
-						# splice!(Dom2, pos_actuel)
-						# ix -= 1
-					# else
-						# pos_actuel += 1
-					# end
-				# end
-			# end
-		# end
-		# y.domain = Dom2 #update the domain
-		# RestrictDom[findall(x->x==y,model.variables)[1]] = ix - 1 #update the lenght of the domain, to not consider the values that are not in the constraints
-	# end
-# end
+
 
 ################################################################################################################
 ###########Algorithmes ARC
@@ -135,7 +113,7 @@ function AC3!(model::Model)
 		cstr = pop!(aTester) #remove the last constraint of the list to test and save it in a tuple to work with
 		(x,y) = cstr.var
 		for a in x.domain
-			if !is_supported(cstr, x, a)
+			if !is_supported(cstr, y, a)
 				println("(",x.name,", ", a, ") is not supported by ", y.name)
 				x.domain = filter!(x->x!=a, x.domain)
 				for cstr in constraints(model, x)
