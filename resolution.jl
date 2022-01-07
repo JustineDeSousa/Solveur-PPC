@@ -209,7 +209,7 @@ function solve_coloration_instances()
     resolutionFolder = []
 	for s in selectionMethod
 		for r in rootMethod
-			for n in rootMethod
+			for n in nodesMethod
 				push!( resolutionFolder, resFolder * s * r * n)
 			end
 		end
