@@ -65,7 +65,7 @@ function Backtrack(model::Model, var_instancie::Array{Variable,1}, selection="ra
 	end
 	
 	nd_numero += 1
-	if rem(nd_numero,10) == 0
+	if rem(nd_numero,50) == 0
 		println(" ##### node ", nd_numero, ": ")
 	end
 	
@@ -151,9 +151,9 @@ function solve_coloration_instances()
     resFolder = "res/"
 
     # Array which contains the name of the resolution methods
-    selectionMethod = ["none", "domain_min"]
-	rootMethod = ["none", "AC3", "AC4"]
-	nodesMethod = ["none", "fwrd", "AC3", "AC4"]
+    selectionMethod = ["domain_min"] #["none", "domain_min"]
+	rootMethod = ["AC4"] #["none", "AC3", "AC4"]
+	nodesMethod = ["frwd"] #["none", "fwrd", "AC3", "AC4"]
 	
     # Array which contains the result folder of each resolution method
     resolutionFolder = []
