@@ -1,7 +1,7 @@
 c FILE: games120.col
 c Translated from Stanford GraphBase File: games120.gb
 c Stanford GraphBase ID: games(120,0,0,0,0,0,128,0)
-p edge 120 1276
+p edge 120 1276 9
 e 1 16
 e 1 20
 e 1 94

@@ -43,5 +43,8 @@ end
 model = creation_queens()
 
 ############ Solve
-solve(model)
+solve!(model)
+
+############ Writing solution
+
 

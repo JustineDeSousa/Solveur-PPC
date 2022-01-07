@@ -73,6 +73,9 @@ end
 mutable struct Model
 	variables::Array{Variable} #Tableau de variables
 	constraints::Array{Constraint}
+	solved::Bool
+	resolution_time::Float64
+	Model(variables, constraints) = new(variables, constraints, false)
 end
 
 function println(model::Model)
@@ -118,12 +121,7 @@ end
 ##################################################################################
 # Fonctions sur le modèle
 ##################################################################################
-function affiche_solution(model::Model)
-	println(" ########## Solution : ")
-	for x in model.variables
-		println(x)
-	end
-end
+
 # is there a constraint between x et y
 function exists_constraint(model::Model, (x,y)::Tuple{Variable,Variable})
 	for cstr in model.constraints

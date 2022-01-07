@@ -1,7 +1,7 @@
 c FILE: miles250.col
 c Translated from Stanford GraphBase File: miles250.gb
 c Stanford GraphBase ID: miles(128,0,0,0,250,127,0)
-p edge 128 774
+p edge 128 774 8
 e 1 109
 e 1 98
 e 1 80
