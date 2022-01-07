@@ -10,6 +10,7 @@ function graphe(filename)
 	arcs= Array{Tuple{String,String},1}(undef,0)
 	n = 0
 	m = 0
+	nb_col = 0
 	open(filename) do f
 		for line in eachline(f)
 			ln = replace(line, "\n" => "")
@@ -20,10 +21,11 @@ function graphe(filename)
 			elseif ln[1] == "p"
 				n = parse(Int, ln[3]) #number of nodes
 				m = parse(Int, ln[4]) #number of edges
+				nb_col = parse(Int, ln[5]) #optimal number of colors
 			end
 		end
 	end
-	return n, m, arcs, nb_col=10 #A changer
+	return n, m, arcs, nb_col
 end
 
 #######################################################################################
