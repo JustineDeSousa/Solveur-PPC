@@ -189,6 +189,7 @@ function solve!(model::Model, root="AC4", nodes="fwrd", var_selection="domain_mi
 	println("\nNb de noeuds parcourus : ", nd_numero, "\n")
 	
 	model.resolution_time = time() - starting_time
+	#println(model.variables)
 	write_solution(stdout,model)
 	return b
 end
@@ -303,8 +304,14 @@ function solve_instances(type_="queens", method="root")
 			
 			# For each resolution method
 			for rootId in rootMethod
-				outputFile = resFolder * "/root" * rootId * "/" * file
-				println("root " * rootId)
+				folder = resFolder * "coloration/root" * rootId
+				if !isdir(folder)
+					println(pwd())
+					println(folder)
+					mkdir(folder)
+				end
+				outputFile = folder * "/" * SubString(file,1,length(file)-4) * ".res"
+				#println("root " * rootId)
 				# If the instance has not already been solved by this method
 				if !isfile(outputFile)
 					fout = open(outputFile, "w")  
@@ -332,8 +339,8 @@ function solve_instances(type_="queens", method="root")
 				# Display the results obtained with the method on the current instance
 				#include("../"*outputFile)
 
-				# println(resolutionFolder[methodId], " optimal: ", isOptimal)
-				# println(resolutionFolder[methodId], " time: " * string(round(resolutionTime, sigdigits=2)) * "s\n")
+				 #println(resolutionFolder[methodId], " optimal: ", isOptimal)
+				 #println(resolutionFolder[methodId], " time: " * string(round(resolutionTime, sigdigits=2)) * "s\n")
 			end
 		end 
 	end
