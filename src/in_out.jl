@@ -13,7 +13,7 @@ function write_solution(fout, model::Model)
 	end 
 	println(fout, ")\n")
 	
-	println(fout, "resolution_time = " * string(round(model.resolution_time, sigdigits=4)) * "s" )
+	println(fout, "resolution_time = " * string(round(model.resolution_time, sigdigits=4)))
 	println(fout, "is_solved = " * string(model.solved) )
 end 
 
@@ -29,31 +29,21 @@ Prerequisites:
 - Each text file correspond to the resolution of one instance
 - Each text file contains a variable "solveTime" and a variable "isOptimal"
 """
-function performanceDiagram(outputFile::String)
+function performanceDiagram(outputFile::String, type_="queens")
 
-    resultFolder = "res/"
-    
-    # Maximal number of files in a subfolder
-    maxSize = 0
-
-    # Number of subfolders
-    subfolderCount = 0
-
+    resultFolder = "res/" * type_ * "/"
+	println("resultFolder = ", resultFolder)
+    maxSize = 0# Maximal number of files in a subfolder
+    subfolderCount = 0	# Number of subfolders
     folderName = Array{String, 1}()
 
     # For each file in the result folder
     for file in readdir(resultFolder)
-
         path = resultFolder * file
-        
-        # If it is a subfolder
-        if isdir(path)
-            
+        if isdir(path)	# If it is a subfolder
             folderName = vcat(folderName, file)
-             
             subfolderCount += 1
             folderSize = size(readdir(path), 1)
-
             if maxSize < folderSize
                 maxSize = folderSize
             end
@@ -75,21 +65,15 @@ function performanceDiagram(outputFile::String)
     # For each subfolder
     for file in readdir(resultFolder)
         path = resultFolder * file
-        
         if isdir(path)
-
             folderCount += 1
             fileCount = 0
-
             # For each text file in the subfolder
-            for resultFile in filter(x->occursin(".txt", x), readdir(path))
-
+            for resultFile in filter(x->occursin(".res", x), readdir(path))
                 fileCount += 1
                 include("../" * path * "/" * resultFile)
-
                 if isOptimal
                     results[folderCount, fileCount] = solveTime
-
                     if solveTime > maxSolveTime
                         maxSolveTime = solveTime
                     end 
@@ -97,15 +81,10 @@ function performanceDiagram(outputFile::String)
             end 
         end
     end 
-
-    # Sort each row increasingly
-    results = sort(results, dims=2)
-
+    results = sort(results, dims=2)    # Sort each row increasingly
     println("Max solve time: ", maxSolveTime)
-
-    # For each line to plot
-    for dim in 1: size(results, 1)
-
+    
+    for dim in 1: size(results, 1)	# For each line to plot
         x = Array{Float64, 1}()
         y = Array{Float64, 1}()
 
@@ -116,42 +95,33 @@ function performanceDiagram(outputFile::String)
         append!(x, previousX)
         append!(y, previousY)
             
-        # Current position in the line
-        currentId = 1
+        currentId = 1	# Current position in the line
 
         # While the end of the line is not reached 
         while currentId != size(results, 2) && results[dim, currentId] != Inf
-            # Number of elements which have the value previousX
-            identicalValues = 1
-
+			identicalValues = 1# Number of elements which have the value previousX
             # While the value is the same
             while currentId < size(results, 2) && results[dim, currentId] == previousX
                 currentId += 1
                 identicalValues += 1
             end
-
             # Add the proper points
             append!(x, previousX)
             append!(y, currentId - 1)
-
             if results[dim, currentId] != Inf
                 append!(x, results[dim, currentId])
                 append!(y, currentId - 1)
             end
-            
             previousX = results[dim, currentId]
             previousY = currentId - 1
         end
-
         append!(x, maxSolveTime)
         append!(y, currentId - 1)
 
-        # If it is the first subfolder
-        if dim == 1
-
+        
+        if dim == 1# If it is the first subfolder
             # Draw a new plot
             plot(x, y, label = folderName[dim], legend = :bottomright, xaxis = "Time (s)", yaxis = "Solved instances",linewidth=3)
-
         # Otherwise 
         else
             # Add the new curve to the created plot
@@ -172,80 +142,66 @@ Prerequisites:
 - Each text file correspond to the resolution of one instance
 - Each text file contains a variable "solveTime" and a variable "isOptimal"
 """
-function resultsArray(outputFile::String)
+function resultsArray(outputFile::String, type_="queens", method="root")
     
-    resultFolder = "res/"
-    dataFolder = "data/"
+    resultFolder = "res/" * type_ * "/"
+	println("resultFolder = ", resultFolder)
     
-    # Maximal number of files in a subfolder
-    maxSize = 0
-
-    # Number of subfolders
-    subfolderCount = 0
-
-    # Open the latex output file
-    fout = open(outputFile, "w")
+    maxSize = 0	# Maximal number of files in a subfolder
+    subfolderCount = 0	# Number of subfolders
+    fout = open(outputFile, "w")	# Open the latex output file
 
     # Print the latex file output
-    println(fout, raw"""\documentclass{article}
+    println(fout, raw"""
+	\documentclass{article}
 
-\usepackage[french]{babel}
-\usepackage [utf8] {inputenc} % utf-8 / latin1 
-\usepackage{multicol}
+	\usepackage[french]{babel}
+	\usepackage [utf8] {inputenc} % utf-8 / latin1 
+	\usepackage{multicol}
 
-\setlength{\hoffset}{-18pt}
-\setlength{\oddsidemargin}{0pt} % Marge gauche sur pages impaires
-\setlength{\evensidemargin}{9pt} % Marge gauche sur pages paires
-\setlength{\marginparwidth}{54pt} % Largeur de note dans la marge
-\setlength{\textwidth}{481pt} % Largeur de la zone de texte (17cm)
-\setlength{\voffset}{-18pt} % Bon pour DOS
-\setlength{\marginparsep}{7pt} % Séparation de la marge
-\setlength{\topmargin}{0pt} % Pas de marge en haut
-\setlength{\headheight}{13pt} % Haut de page
-\setlength{\headsep}{10pt} % Entre le haut de page et le texte
-\setlength{\footskip}{27pt} % Bas de page + séparation
-\setlength{\textheight}{668pt} % Hauteur de la zone de texte (25cm)
+	\setlength{\hoffset}{-18pt}
+	\setlength{\oddsidemargin}{0pt} % Marge gauche sur pages impaires
+	\setlength{\evensidemargin}{9pt} % Marge gauche sur pages paires
+	\setlength{\marginparwidth}{54pt} % Largeur de note dans la marge
+	\setlength{\textwidth}{481pt} % Largeur de la zone de texte (17cm)
+	\setlength{\voffset}{-18pt} % Bon pour DOS
+	\setlength{\marginparsep}{7pt} % Séparation de la marge
+	\setlength{\topmargin}{0pt} % Pas de marge en haut
+	\setlength{\headheight}{13pt} % Haut de page
+	\setlength{\headsep}{10pt} % Entre le haut de page et le texte
+	\setlength{\footskip}{27pt} % Bas de page + séparation
+	\setlength{\textheight}{668pt} % Hauteur de la zone de texte (25cm)
 
-\begin{document}""")
+	\begin{document}
+	""")
 
     header = raw"""
-\begin{center}
-\renewcommand{\arraystretch}{1.4} 
- \begin{tabular}{l"""
+	\begin{center}
+	\renewcommand{\arraystretch}{1.4} 
+	\begin{tabular}{l
+	"""
 
-    # Name of the subfolder of the result folder (i.e, the resolution methods used)
-    folderName = Array{String, 1}()
-
-    # List of all the instances solved by at least one resolution method
-    solvedInstances = Array{String, 1}()
+    folderName = Array{String, 1}()	# Name of the subfolder of the result folder (i.e, the resolution methods used)
+    solvedInstances = Array{String, 1}()# List of all the instances solved by at least one resolution method
 
     # For each file in the result folder
     for file in readdir(resultFolder)
-
         path = resultFolder * file
-        
-        # If it is a subfolder
-        if isdir(path)
-
-            # Add its name to the folder list
-            folderName = vcat(folderName, file)
-             
+        if isdir(path)        # If it is a subfolder
+            folderName = vcat(folderName, file)	# Add its name to the folder list
             subfolderCount += 1
             folderSize = size(readdir(path), 1)
-
             # Add all its files in the solvedInstances array
-            for file2 in filter(x->occursin(".txt", x), readdir(path))
+            for file2 in filter(x->occursin(".res", x), readdir(path))
                 solvedInstances = vcat(solvedInstances, file2)
             end 
-
             if maxSize < folderSize
                 maxSize = folderSize
             end
         end
     end
 
-    # Only keep one string for each instance solved
-    unique(solvedInstances)
+    unique(solvedInstances)	# Only keep one string for each instance solved
 
     # For each resolution method, add two columns in the array
     for folder in folderName
@@ -268,50 +224,41 @@ function resultsArray(outputFile::String)
 
     header *= "\\\\\\hline\n"
 
-    footer = raw"""\hline\end{tabular}
-\end{center}
+    footer = raw"""
+	\hline\end{tabular}
+	\end{center}
 
-"""
+	"""
     println(fout, header)
 
-    # On each page an array will contain at most maxInstancePerPage lines with results
-    maxInstancePerPage = 30
+    maxInstancePerPage = 35	# On each page an array will contain at most maxInstancePerPage lines with results
     id = 1
 
     # For each solved files
     for solvedInstance in solvedInstances
-
         # If we do not start a new array on a new page
         if rem(id, maxInstancePerPage) == 0
             println(fout, footer, "\\newpage")
             println(fout, header)
         end 
 
-        # Replace the potential underscores '_' in file names
-        print(fout, replace(solvedInstance, "_" => "\\_"))
+        print(fout, replace(solvedInstance, "_" => "\\_"))	# Replace the potential underscores '_' in file names
 
         # For each resolution method
         for method in folderName
-
             path = resultFolder * method * "/" * solvedInstance
-
-            # If the instance has been solved by this method
-            if isfile(path)
-
+            if isfile(path)	# If the instance has been solved by this method
+				println("../"*path)
                 include("../"*path)
-
-                println(fout, " & ", round(solveTime, digits=2), " & ")
-
-                if isOptimal
+                println(fout, " & ", round(resolution_time, digits=2), " & ")
+                if is_solved
                     println(fout, "\$\\times\$")
                 end 
-                
-            # If the instance has not been solved by this method
+            #If the instance has not been solved by this method
             else
                 println(fout, " & - & - ")
             end
         end
-
         println(fout, "\\\\")
 
         id += 1
@@ -319,10 +266,7 @@ function resultsArray(outputFile::String)
 
     # Print the end of the latex file
     println(fout, footer)
-
     println(fout, "\\end{document}")
-
     close(fout)
-    
 end 
 

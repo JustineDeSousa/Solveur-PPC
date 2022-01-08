@@ -32,19 +32,13 @@ function create_constraints!(model::Model,n::Int64)
 	end	
 	return model
 end
-function creation_queens()
-	print("Number of Queens: ")
-	n = parse( Int64, readline(stdin) )
+function creation_queens(n::Int64)
 	model = Model(crear_var_reines(n),[])
 	create_constraints!(model,n)
 	return model
 end
-############ Model definition
-model = creation_queens()
 
 ############ Solve
-solve!(model, "None", "None", "None", "None")
-
-############ Writing solution
-
-
+solve_instances("queens")
+resultsArray("arrayQueens.tex", "queens", "root")
+performanceDiagram("diagramQueens", "queens")

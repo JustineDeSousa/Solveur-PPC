@@ -108,8 +108,8 @@ function Backtrack(model::Model, var_instancie::Array{Variable,1}, root="AC4", n
 	
 	if isempty(var_instancie) #Si on n'a pas encore commencé le backtrack
 		global nd_numero = 0
-		println(" #################### Backtrack ####################")
-		println("	##### root = ", root, " #####")
+		#println(" #################### Backtrack ####################")
+		#println("	##### root = ", root, " #####")
 		if root == "AC3"
 			AC3!(model)
 		elseif root == "AC4"
@@ -118,9 +118,9 @@ function Backtrack(model::Model, var_instancie::Array{Variable,1}, root="AC4", n
 	end
 	
 	nd_numero += 1
-	if rem(nd_numero,1000) == 0
-		println(" ##### node ", nd_numero, ": ")
-	end
+	# if rem(nd_numero,1000) == 0
+		# println(" ##### node ", nd_numero, ": ")
+	# end
 	
 	if !verification(model, var_instancie) #Si une contrainte est violée parmi les variables déjà instanciées
         #println("the constraints are not verified")
@@ -235,47 +235,80 @@ function solve_instances(type_="queens")
     global resolutionTime = -1
 
     # For each instance
-    # (for each file in folder data_folder which ends by ".col")
-    for file in filter(x->occursin(".col", x), readdir(dataFolder))
-        println("-- Resolution of ", file)
-        model = creation_coloration(file)
-        
-        # For each resolution method
-        for rootId in rootMethod
-            outputFile = resFolder * "/root" * rootId * "/" * file
-            # If the instance has not already been solved by this method
-            if !isfile(outputFile)
-                fout = open(outputFile, "w")  
-				
-                resolutionTime = -1
-                isOptimal = false
-
-				# Start a chronometer 
-				startingTime = time()
-				
-				# While the grid is not solved and less than 100 seconds are elapsed
-				while !isOptimal && resolutionTime < 100
-					solve!(model, rootId, "None", "None", "None")
-					isOptimal  = model.solved
-					
-					# Stop the chronometer
-					resolutionTime = time() - startingTime
+	if type_ == "queens"
+		for n in 5:15
+			println("-- Resolution of ", n, " queens")
+			model = creation_queens(n)
+			for root in rootMethod
+				folder = resFolder * "queens/root" * root
+				if !isdir(folder)
+					println(pwd())
+					println(folder)
+					mkdir(folder)
 				end
-				# Write the solution
-				write_solution(fout,model)
-                close(fout)
-            end
+				outputFile = folder * "/queens" * string(n) * ".res"
+				if !isfile(outputFile)
+					fout = open(outputFile, "w")
+					resolutionTime = -1
+					isOptimal = false 
+					startingTime = time()
+					# While the grid is not solved and less than 100 seconds are elapsed
+					while !isOptimal && resolutionTime < 100
+						solve!(model, root, "None", "None", "None")
+						isOptimal  = model.solved
+						resolutionTime = time() - startingTime
+					end
+					# Write the solution
+					write_solution(fout,model)
+					close(fout)
+				end
+				println("root", root, " optimal: ", isOptimal)
+				println("root", root, " time: " * string(round(resolutionTime, sigdigits=2)) * "s\n")
+			end
+		end
+	elseif type_ == "coloration"
+		# (for each file in folder data_folder which ends by ".col")
+		for file in filter(x->occursin(".col", x), readdir(dataFolder))
+			println("-- Resolution of ", file)
+			model = creation_coloration(file)
+			
+			# For each resolution method
+			for rootId in rootMethod
+				outputFile = resFolder * "/root" * rootId * "/" * file
+				println("root " * rootId)
+				# If the instance has not already been solved by this method
+				if !isfile(outputFile)
+					fout = open(outputFile, "w")  
+					
+					resolutionTime = -1
+					isOptimal = false
+
+					# Start a chronometer 
+					startingTime = time()
+					
+					# While the grid is not solved and less than 100 seconds are elapsed
+					while !isOptimal && resolutionTime < 100
+						solve!(model, rootId, "None", "None", "None")
+						isOptimal  = model.solved
+						
+						# Stop the chronometer
+						resolutionTime = time() - startingTime
+					end
+					# Write the solution
+					write_solution(fout,model)
+					close(fout)
+				end
 
 
-            # Display the results obtained with the method on the current instance
-			println(pwd())
-			println("outputFile = ", outputFile)
-            #include("../"*outputFile)
+				# Display the results obtained with the method on the current instance
+				#include("../"*outputFile)
 
-            println(resolutionFolder[methodId], " optimal: ", isOptimal)
-            println(resolutionFolder[methodId], " time: " * string(round(resolutionTime, sigdigits=2)) * "s\n")
-        end         
-    end 
+				# println(resolutionFolder[methodId], " optimal: ", isOptimal)
+				# println(resolutionFolder[methodId], " time: " * string(round(resolutionTime, sigdigits=2)) * "s\n")
+			end
+		end 
+	end
+
 end
 
 #################################################################################################################
