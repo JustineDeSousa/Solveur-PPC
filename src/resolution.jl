@@ -188,6 +188,7 @@ function solve!(model::Model, root="AC4", nodes="fwrd", var_selection="domain_mi
 	println("\nNb de noeuds parcourus : ", nd_numero, "\n")
 	
 	model.resolution_time = time() - starting_time
+	#println(model.variables)
 	write_solution(stdout,model)
 	return b
 end

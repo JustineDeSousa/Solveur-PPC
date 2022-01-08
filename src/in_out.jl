@@ -11,9 +11,11 @@ function write_solution(fout, model::Model)
 	n = length(model.variables)
 	print(fout, "solution = (")
 	for i in 1:1:n-1
-		print(fout, string(model.variables[i].value) )
+		tup=(model.variables[i].name,model.variables[i].value)
+		print(fout, string(tup)*"," )
 	end
-	println(fout, string(model.variables[n]) * ")")
+	tup=(model.variables[n].name,model.variables[n].value)
+	println(fout, string(tup) * ")")
 	println(fout, "resolution_time = " * string(round(model.resolution_time, sigdigits=4)))
 	println(fout, "is_solved = " * string(model.solved) )
 end 
