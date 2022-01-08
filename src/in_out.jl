@@ -11,9 +11,9 @@ function write_solution(fout, model::Model)
 	n = length(model.variables)
 	print(fout, "solution = (")
 	for i in 1:1:n-1
-		print(fout, string(model.variables[i].value) )
+		print(fout, string(model.variables[i].value) * ", ")
 	end
-	println(fout, string(model.variables[n]) * ")")
+	println(fout, string(model.variables[n].value) * ")")
 	println(fout, "resolution_time = " * string(round(model.resolution_time, sigdigits=4)))
 	println(fout, "is_solved = " * string(model.solved) )
 end 
@@ -30,9 +30,9 @@ Prerequisites:
 - Each text file correspond to the resolution of one instance
 - Each text file contains a variable "resolution_time" and a variable "is_solved"
 """
-function performanceDiagram(outputFile::String, type_="queens")
+function performanceDiagram(type_="queens", method="root")
 
-    resultFolder = "res/" * type_ * "/"
+    resultFolder = "res/" * type_ * "/" * method * "/"
 	println("resultFolder = ", resultFolder)
     maxSize = 0# Maximal number of files in a subfolder
     subfolderCount = 0	# Number of subfolders
@@ -126,6 +126,7 @@ function performanceDiagram(outputFile::String, type_="queens")
 		# Otherwise 
         else
             # Add the new curve to the created plot
+			outputFile = "diagram_" * type_ * "_" * method
             savefig(plot!(x, y, label = folderName[dim], linewidth=3), outputFile)
         end 
     end
@@ -143,18 +144,19 @@ Prerequisites:
 - Each text file correspond to the resolution of one instance
 - Each text file contains a variable "resolution_time" and a variable "is_solved"
 """
-function resultsArray(outputFile::String, type_="queens", method="root")
-    
-    resultFolder = "res/" * type_ * "/"
+function resultsArray(type_="queens", method="root")
+    println("resultsArray")
+    resultFolder = "res/" * type_ * "/" * method * "/"
 	println("resultFolder = ", resultFolder)
     
     maxSize = 0	# Maximal number of files in a subfolder
     subfolderCount = 0	# Number of subfolders
+	outputFile = "array_" * type_ * "_" * method * ".tex"
     fout = open(outputFile, "w")	# Open the latex output file
 
     # Print the latex file output
     println(fout, raw"""
-	\documentclass{article}
+	\documentclass[main.tex]{subfiles}
 
 	\usepackage[french]{babel}
 	\usepackage [utf8] {inputenc} % utf-8 / latin1 
