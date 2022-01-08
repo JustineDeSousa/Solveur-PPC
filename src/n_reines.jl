@@ -39,6 +39,8 @@ function creation_queens(n::Int64)
 end
 
 ############ Solve
-solve_instances("queens")
-resultsArray("arrayQueens.tex", "queens", "root")
-performanceDiagram("diagramQueens", "queens")
+type_ = "queens"
+method = "nodes"
+solve_instances(type_, method)
+resultsArray(type_, method)
+performanceDiagram(type_, method)

@@ -179,6 +179,7 @@ end
 Solve one instance
 """
 function solve!(model::Model, root="AC4", nodes="fwrd", var_selection="domain_min", value_selection="min_conflict")
+	println(" solve!(", root, ",", nodes, ",", var_selection, ",", value_selection, ")")
 	var_instancie = Array{Variable,1}(undef,0)
 	
 	starting_time = time()
@@ -199,16 +200,38 @@ The results are written in "res/options"
 
 Remark: If an instance has previously been solved it will not be solved again
 """
-function solve_instances(type_="queens")
-
+function solve_instances(type_="queens", method="root")
+	println("solve_instances(" * type_ * "," * method * ")")
     dataFolder = "instances/"
     resFolder = "res/"
 
     # Array which contains the name of the resolution methods
-    rootMethod = ["None", "AC3", "AC4"]
-	nodesMethod = ["None", "Fwrd", "AC3", "AC4"]
-	varSelectionMethod = ["None", "domainMin"]
-	valueSelectionMathod = ["None", "MinConflicts", "MaxConflicts"]
+	if method == "root"
+		methodOptions = ["None", "AC3", "AC4"]
+		nodes = "None"
+		var_selection = "None"
+		value_selection = "None"
+	elseif method == "nodes"
+		methodOptions = ["None", "Fwrd", "AC3", "AC4"]
+		root = "AC4"
+		var_selection = "None"
+		value_selection = "None"
+	elseif method == "var_selection"
+		methodOptions = ["None", "domainMin"]
+		root = "AC4"
+		nodes = "Fwrd"
+		value_selection = "None"
+	elseif method == "value_selection"
+		methodOptions = ["None", "MinConflicts", "MaxConflicts"]
+		root = "AC4"
+		nodes = "Fwrd"
+		var_selection = "domainMin"
+	else
+		error("Argument '" * method * "' is not right. Use 'root', 'nodes', 'var_selection' or 'value_selection'.")
+	end
+    
+
+	
 	
 	
     # Array which contains the result folder of each resolution method
@@ -238,10 +261,20 @@ function solve_instances(type_="queens")
     # For each instance
 	if type_ == "queens"
 		for n in 5:15
-			println("-- Resolution of ", n, " queens")
+			println("\n-- Resolution of the ", n, " queens problem")
 			model = creation_queens(n)
-			for root in rootMethod
-				folder = resFolder * "queens/root" * root
+			for m in methodOptions
+				print("---- " * method * " = " * m * " : ")
+				if method=="root"
+					root = m
+				elseif method=="nodes"
+					nodes = m
+				elseif method=="var_selection"
+					var_selection = m
+				elseif method=="value_selection"
+					value_selection = m
+				end
+				folder = resFolder * "queens/" * method * "/" * m
 				if !isdir(folder)
 					println(pwd())
 					println(folder)
@@ -254,17 +287,13 @@ function solve_instances(type_="queens")
 					isOptimal = false 
 					startingTime = time()
 					# While the grid is not solved and less than 100 seconds are elapsed
-					while !isOptimal && resolutionTime < 100
-						solve!(model, root, "None", "None", "None")
-						isOptimal  = model.solved
-						resolutionTime = time() - startingTime
-					end
+					#while !isOptimal && resolutionTime < 100
+						solve!(model, root, nodes, var_selection, value_selection) #Il faudrait rajouter une cte de temps
+					#end
 					# Write the solution
 					write_solution(fout,model)
 					close(fout)
 				end
-				println("root", root, " optimal: ", isOptimal)
-				println("root", root, " time: " * string(round(resolutionTime, sigdigits=2)) * "s\n")
 			end
 		end
 	elseif type_ == "coloration"
