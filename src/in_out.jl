@@ -1,4 +1,5 @@
 include("model.jl")
+#using PyPlot
 """
 Write a solution in an output stream
 
@@ -27,7 +28,7 @@ Arguments
 Prerequisites:
 - Each subfolder must contain text files
 - Each text file correspond to the resolution of one instance
-- Each text file contains a variable "solveTime" and a variable "isOptimal"
+- Each text file contains a variable "resolution_time" and a variable "is_solved"
 """
 function performanceDiagram(outputFile::String, type_="queens")
 
@@ -60,7 +61,7 @@ function performanceDiagram(outputFile::String, type_="queens")
     end
 
     folderCount = 0
-    maxSolveTime = 0
+    maxresolution_time = 0
 
     # For each subfolder
     for file in readdir(resultFolder)
@@ -72,17 +73,17 @@ function performanceDiagram(outputFile::String, type_="queens")
             for resultFile in filter(x->occursin(".res", x), readdir(path))
                 fileCount += 1
                 include("../" * path * "/" * resultFile)
-                if isOptimal
-                    results[folderCount, fileCount] = solveTime
-                    if solveTime > maxSolveTime
-                        maxSolveTime = solveTime
+                if is_solved
+                    results[folderCount, fileCount] = resolution_time
+                    if resolution_time > maxresolution_time
+                        maxresolution_time = resolution_time
                     end 
                 end 
             end 
         end
     end 
     results = sort(results, dims=2)    # Sort each row increasingly
-    println("Max solve time: ", maxSolveTime)
+    println("Max solve time: ", maxresolution_time)
     
     for dim in 1: size(results, 1)	# For each line to plot
         x = Array{Float64, 1}()
@@ -115,14 +116,14 @@ function performanceDiagram(outputFile::String, type_="queens")
             previousX = results[dim, currentId]
             previousY = currentId - 1
         end
-        append!(x, maxSolveTime)
+        append!(x, maxresolution_time)
         append!(y, currentId - 1)
 
         
         if dim == 1# If it is the first subfolder
             # Draw a new plot
             plot(x, y, label = folderName[dim], legend = :bottomright, xaxis = "Time (s)", yaxis = "Solved instances",linewidth=3)
-        # Otherwise 
+		# Otherwise 
         else
             # Add the new curve to the created plot
             savefig(plot!(x, y, label = folderName[dim], linewidth=3), outputFile)
@@ -140,7 +141,7 @@ Arguments
 Prerequisites:
 - Each subfolder must contain text files
 - Each text file correspond to the resolution of one instance
-- Each text file contains a variable "solveTime" and a variable "isOptimal"
+- Each text file contains a variable "resolution_time" and a variable "is_solved"
 """
 function resultsArray(outputFile::String, type_="queens", method="root")
     
