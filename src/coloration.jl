@@ -66,4 +66,7 @@ end
 ###### Solve
 # solve(model)
 
-solve_coloration_instances()
+#solve_coloration_instances()
+solve_instances("coloration")
+resultsArray("arrayColoration.tex", "coloration", "root")
+performanceDiagram("diagramColoration", "coloration")
