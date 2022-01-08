@@ -1,5 +1,5 @@
 include("model.jl")
-#using PyPlot
+using Plots
 """
 Write a solution in an output stream
 
