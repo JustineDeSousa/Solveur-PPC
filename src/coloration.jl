@@ -1,5 +1,5 @@
 # cd("D:\\M2\\PPC\\projet\\Solveur-PPC")
-# include("coloration.jl")
+# include("src\\coloration.jl")
 
 include("resolution.jl")
 

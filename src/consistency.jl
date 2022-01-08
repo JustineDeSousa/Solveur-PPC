@@ -7,7 +7,7 @@ function verification(model::Model, var_instancie::Array{Variable,1})
 			if x != y
 				for cstr in constraints(model, x, y)
 					if !((x.value,y.value) in cstr.couples)
-						println("(", x.name, ", ", y.name, ") = (", x.value, ", ", y.value, ") isnt in the constraint")
+						#println("(", x.name, ", ", y.name, ") = (", x.value, ", ", y.value, ") isnt in the constraint")
 						return false
 					end                                                                
 				end

@@ -52,16 +52,16 @@ function value_selection!(model::Model, var_non_instancie::Array{Variable,1}, op
 			cstr=number_constr(model, x)
 			#println("cstr",cstr)
 			while !isempty(cstr)
-				max=cstr[1]
+				max_=cstr[1]
 				for i in cstr
 					#println("max",max)
-					if i[2]<max[2]
-						max=i
+					if i[2]<max_[2]
+						max_=i
 					end
 				end
-				cstr=filter!(v->v!=max, cstr)
+				cstr=filter!(v->v!=max_, cstr)
 				#println("vacio ", isempty(cstr))
-				push!(domains,max[1])	
+				push!(domains,max_[1])	
 			end
 			x.domain=domains
 		end
@@ -72,16 +72,16 @@ function value_selection!(model::Model, var_non_instancie::Array{Variable,1}, op
 			cstr=number_constr(model, x)
 			#println("cstr",cstr)
 			while !isempty(cstr)
-				min=cstr[1]
+				min_=cstr[1]
 				for i in cstr
 					#println("max",max)
-					if i[2]<min[2]
-						min=i
+					if i[2]<min_[2]
+						min_=i
 					end
 				end
-				cstr=filter!(v->v!=min, cstr)
+				cstr=filter!(v->v!=min_, cstr)
 				#println("vacio ", isempty(cstr))
-				push!(domains,min[1])	
+				push!(domains,min_[1])	
 			end
 			x.domain=domains
 		end	
@@ -95,26 +95,30 @@ end
 
 """
 bactracking : options : 
-	-	selection : mode de selection des variables : 
-			-	"random", "average", "domain_min", "unbound", 
-				any other would do it in the order of variables
+	
 	-	root : 0(means nothing), AC3, AC4 ?
 	- 	nodes : 0(means nothing), frwd, AC3, AC4 ?
+	-	var_selection : mode de selection des variables : 
+			-	"random", "average", "domain_min", "unbound", 
+				any other would do it in the order of variables
+	-	value_selection : mode de selection des valeurs :
+			- min_conflict, max_conflict, other(=in the order of the variables)
 """
-function Backtrack(model::Model, var_instancie::Array{Variable,1}, selection="random", root="AC3", nodes="frwd",value_selection="min_conflict")
+function Backtrack(model::Model, var_instancie::Array{Variable,1}, root="AC4", nodes="frwd", var_selection="domain_min", value_selection="min_conflict")
 	
 	if isempty(var_instancie) #Si on n'a pas encore commencé le backtrack
 		global nd_numero = 0
 		println(" #################### Backtrack ####################")
+		println("	##### root = ", root, " #####")
 		if root == "AC3"
 			AC3!(model)
 		elseif root == "AC4"
 			AC4!(model)
-		end		
+		end
 	end
 	
 	nd_numero += 1
-	if rem(nd_numero,50) == 0
+	if rem(nd_numero,1000) == 0
 		println(" ##### node ", nd_numero, ": ")
 	end
 	
@@ -127,7 +131,6 @@ function Backtrack(model::Model, var_instancie::Array{Variable,1}, selection="ra
 	
 	if isempty(variables_non_instancie) #if all the variables are instantiated the problem is solved
 		model.solved = true
-		println("Nombre de noeuds parcourus: ", nd_numero)
         return true
 	end
 	
@@ -139,11 +142,11 @@ function Backtrack(model::Model, var_instancie::Array{Variable,1}, selection="ra
 	end
 	
 	
-	x = variable_selection(model,variables_non_instancie, selection) #variable to branch
+	x = variable_selection(model,variables_non_instancie, var_selection) #variable to branch
 	push!(var_instancie, x) #add the new variable to branch to the variables instantiated
 	#print("Branche sur ")
 	nb_values = 0
-	value_selection!(model, variables_non_instancie, value_selection)
+	value_selection!(model, variables_non_instancie, value_selection) #order the values of x.domain according to value_selection
 	for v in x.domain
 		nb_values += 1
 		x.value = v #add the new value to the instance
@@ -152,14 +155,14 @@ function Backtrack(model::Model, var_instancie::Array{Variable,1}, selection="ra
 			#We need to keep the domains for the ohter branches
 			domains = keeps_domains(model)
 			if nodes == "fwrd"
-			forward_checking!(model, var_instancie, x)
+				forward_checking!(model, var_instancie, x)
 			elseif nodes == "AC3"
 				AC3!(model)
 			elseif nodes == "AC4"
 				AC4!(model)
 			end
 		end
-		if Backtrack(model, var_instancie, selection, root, nodes )
+		if Backtrack(model, var_instancie, root, nodes, var_selection, value_selection )
 			return true
 		elseif nodes == "fwrd" || nodes == "AC3" || nodes == "AC4"
 			back_domains(model, domains)
@@ -175,14 +178,14 @@ end
 """
 Solve one instance
 """
-function solve!(model::Model, selection="0", root="AC4", nodes="fwrd", value_selection="min_conflict")
+function solve!(model::Model, root="AC4", nodes="fwrd", var_selection="domain_min", value_selection="min_conflict")
 	var_instancie = Array{Variable,1}(undef,0)
 	
 	starting_time = time()
 	
-	b=Backtrack(model, var_instancie, selection, root, nodes, value_selection)
+	b=Backtrack(model, var_instancie, root, nodes, var_selection, value_selection)
 	
-	println("Nb de noeuds parcourus : ", nd_numero)
+	println("\nNb de noeuds parcourus : ", nd_numero, "\n")
 	
 	model.resolution_time = time() - starting_time
 	write_solution(stdout,model)
@@ -195,33 +198,38 @@ The results are written in "res/options"
 
 Remark: If an instance has previously been solved it will not be solved again
 """
-function solve_coloration_instances()
+function solve_instances(type_="queens")
 
     dataFolder = "instances/"
     resFolder = "res/"
 
     # Array which contains the name of the resolution methods
-    selectionMethod = ["none", "domainMin"]
-	rootMethod = ["none", "AC3", "AC4"]
-	nodesMethod = ["none", "fwrd", "AC3", "AC4"]
+    rootMethod = ["None", "AC3", "AC4"]
+	nodesMethod = ["None", "Fwrd", "AC3", "AC4"]
+	varSelectionMethod = ["None", "domainMin"]
+	valueSelectionMathod = ["None", "MinConflicts", "MaxConflicts"]
+	
 	
     # Array which contains the result folder of each resolution method
-    resolutionFolder = []
-	for s in selectionMethod
-		for r in rootMethod
-			for n in nodesMethod
-				push!( resolutionFolder, resFolder * s * r * n)
-			end
-		end
-	end
+    # resolutionFolder = []
+	# for r in rootMethod
+		# push!(resolutionFolder, resFolder*r)
+	# end
+	# for s in selectionMethod
+		# for r in rootMethod
+			# for n in nodesMethod
+				# push!( resolutionFolder, resFolder * s * r * n)
+			# end
+		# end
+	# end
 
     # Create each result folder if it does not exist
-    for folder in resolutionFolder
-        if !isdir(folder)
-			println(folder)
-            mkdir(folder)
-        end
-    end
+    # for folder in resolutionFolder
+        # if !isdir(folder)
+			# println(folder)
+            # mkdir(folder)
+        # end
+    # end
             
     global isOptimal = false
     global resolutionTime = -1
@@ -233,8 +241,8 @@ function solve_coloration_instances()
         model = creation_coloration(file)
         
         # For each resolution method
-        for methodId in 1:size(resolutionFolder, 1)
-            outputFile = resolutionFolder[methodId] * "/" * file
+        for rootId in rootMethod
+            outputFile = resFolder * "/root" * rootId * "/" * file
             # If the instance has not already been solved by this method
             if !isfile(outputFile)
                 fout = open(outputFile, "w")  
@@ -247,7 +255,7 @@ function solve_coloration_instances()
 				
 				# While the grid is not solved and less than 100 seconds are elapsed
 				while !isOptimal && resolutionTime < 100
-					solve!(model)
+					solve!(model, rootId, "None", "None", "None")
 					isOptimal  = model.solved
 					
 					# Stop the chronometer

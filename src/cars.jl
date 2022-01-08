@@ -1,5 +1,5 @@
 # cd("D:\\M2\\PPC\\projet\\Solveur-PPC")
-# include("cars.jl")
+# include("src\\cars.jl")
 
 include("resolution.jl")
 
@@ -37,5 +37,4 @@ end
 model = creation_cars()
 
 ######## solve ########
-solve!(model, "0", "AC3", "fwrd", "min_conflict")
-println(model.variables)
+solve!(model, "None", "None", "None", "None")

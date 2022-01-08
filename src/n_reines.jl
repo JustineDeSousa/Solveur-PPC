@@ -43,7 +43,7 @@ end
 model = creation_queens()
 
 ############ Solve
-solve!(model)
+solve!(model, "None", "None", "None", "None")
 
 ############ Writing solution
 

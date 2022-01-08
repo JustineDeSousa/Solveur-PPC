@@ -7,15 +7,11 @@ Arguments
 - model: contains the variables with their values
 """
 function write_solution(fout, model::Model)
-	if model.solved
-		print(fout, "solution = (")
-		for x in model.variables
-			print(fout, string(x.value) * ", ")
-		end 
-		println(fout, ")\n")
-	else
-		println(fout, "No solution found")
-	end
+	print(fout, "solution = (")
+	for x in model.variables
+		print(fout, string(x.value) * ", ")
+	end 
+	println(fout, ")\n")
 	
 	println(fout, "resolution_time = " * string(round(model.resolution_time, sigdigits=4)) * "s" )
 	println(fout, "is_solved = " * string(model.solved) )
