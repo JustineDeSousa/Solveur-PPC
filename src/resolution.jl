@@ -108,13 +108,13 @@ function Backtrack(model::Model, var_instancie::Array{Variable,1}, root="AC4", n
 	
 	if isempty(var_instancie) #Si on n'a pas encore commencé le backtrack
 		global nd_numero = 0
-		#println(" #################### Backtrack ####################")
-		#println("	##### root = ", root, " #####")
+		start = time()
 		if root == "AC3"
 			AC3!(model)
 		elseif root == "AC4"
 			AC4!(model)
 		end
+		model.root_time = time() - start
 	end
 	
 	nd_numero += 1
@@ -131,6 +131,7 @@ function Backtrack(model::Model, var_instancie::Array{Variable,1}, root="AC4", n
 	
 	if isempty(variables_non_instancie) #if all the variables are instantiated the problem is solved
 		model.solved = true
+		model.nb_nodes = nd_numero
         return true
 	end
 	

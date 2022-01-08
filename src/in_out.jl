@@ -16,8 +16,10 @@ function write_solution(fout, model::Model)
 	end
 	tup=(model.variables[n].name,model.variables[n].value)
 	println(fout, string(tup) * ")")
-	println(fout, "resolution_time = " * string(round(model.resolution_time, sigdigits=4)))
-	println(fout, "is_solved = " * string(model.solved) )
+	println(fout, "resolution_time = " * string(round(model.resolution_time, sigdigits=6)))
+	println(fout, "root_time = " * string(round(model.root_time, sigdigits=6)))
+	println(fout, "nb_nodes = " * string(model.nb_nodes))
+	println(fout, "is_solved = " * string(model.solved) * "\n")
 end 
 
 """
@@ -160,27 +162,12 @@ function resultsArray(type_="queens", method="root")
     println(fout, raw"""
 	\documentclass[main.tex]{subfiles}
 
-	\usepackage[french]{babel}
-	\usepackage [utf8] {inputenc} % utf-8 / latin1 
-	\usepackage{multicol}
-
-	\setlength{\hoffset}{-18pt}
-	\setlength{\oddsidemargin}{0pt} % Marge gauche sur pages impaires
-	\setlength{\evensidemargin}{9pt} % Marge gauche sur pages paires
-	\setlength{\marginparwidth}{54pt} % Largeur de note dans la marge
-	\setlength{\textwidth}{481pt} % Largeur de la zone de texte (17cm)
-	\setlength{\voffset}{-18pt} % Bon pour DOS
-	\setlength{\marginparsep}{7pt} % Séparation de la marge
-	\setlength{\topmargin}{0pt} % Pas de marge en haut
-	\setlength{\headheight}{13pt} % Haut de page
-	\setlength{\headsep}{10pt} % Entre le haut de page et le texte
-	\setlength{\footskip}{27pt} % Bas de page + séparation
-	\setlength{\textheight}{668pt} % Hauteur de la zone de texte (25cm)
-
 	\begin{document}
+	\thispagestyle{empty}
 	""")
 
     header = raw"""
+	\begin{landscape}
 	\begin{center}
 	\renewcommand{\arraystretch}{1.4} 
 	\begin{tabular}{l
@@ -210,21 +197,21 @@ function resultsArray(type_="queens", method="root")
 
     # For each resolution method, add two columns in the array
     for folder in folderName
-        header *= "rr"
+        header *= "cccc"
     end
 
     header *= "}\n\t\\hline\n"
 
     # Create the header line which contains the methods name
     for folder in folderName
-        header *= " & \\multicolumn{2}{c}{\\textbf{" * folder * "}}"
+        header *= " & \\multicolumn{4}{c}{\\textbf{" * folder * "}}"
     end
 
     header *= "\\\\\n\\textbf{Instance} "
 
     # Create the second header line with the content of the result columns
     for folder in folderName
-        header *= " & \\textbf{Temps (s)} & \\textbf{Optimal ?} "
+        header *= " & \\textbf{Solved ?} & \\textbf{(s)} & \\textbf{Nodes} & \\textbf{(s)/Nd}"
     end
 
     header *= "\\\\\\hline\n"
@@ -232,7 +219,7 @@ function resultsArray(type_="queens", method="root")
     footer = raw"""
 	\hline\end{tabular}
 	\end{center}
-
+	\end{landscape}
 	"""
     println(fout, header)
 
@@ -255,14 +242,15 @@ function resultsArray(type_="queens", method="root")
             if isfile(path)	# If the instance has been solved by this method
 				println("../"*path)
                 include("../"*path)
-                println(fout, " & ", round(resolution_time, digits=2), " & ")
-                if is_solved
-                    println(fout, "\$\\times\$")
+                print(fout, " & ")
+				if is_solved
+                    print(fout, "\$\\times\$")
                 end 
             #If the instance has not been solved by this method
             else
-                println(fout, " & - & - ")
+                print(fout, " & - & - ")
             end
+			println(fout, " & ", round(resolution_time, digits=2), " & ", nb_nodes, " & ", round((resolution_time-root_time)/nb_nodes, digits=2))
         end
         println(fout, "\\\\")
 

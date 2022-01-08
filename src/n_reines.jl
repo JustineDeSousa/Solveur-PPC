@@ -41,6 +41,6 @@ end
 ############ Solve
 type_ = "queens"
 method = "nodes"
-solve_instances(type_, method)
+#solve_instances(type_, method)
 resultsArray(type_, method)
-performanceDiagram(type_, method)
+#performanceDiagram(type_, method)

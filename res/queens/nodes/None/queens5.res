@@ -1,3 +1,5 @@
-solution = (1, 3, 5, 2, 4)
-resolution_time = 0.285
+solution = (("Reine 1", 1),("Reine 2", 3),("Reine 3", 5),("Reine 4", 2),("Reine 5", 4))
+resolution_time = 0.34
+root_time = 0.0640001
+nb_nodes = 16
 is_solved = true
