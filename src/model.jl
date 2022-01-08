@@ -76,6 +76,8 @@ mutable struct Model
 	constraints::Array{Constraint}
 	solved::Bool
 	resolution_time::Float64
+	root_time::Float64
+	nb_nodes::Int64
 	Model(variables, constraints) = new(variables, constraints, false)
 end
 
