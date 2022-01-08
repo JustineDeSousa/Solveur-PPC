@@ -8,12 +8,12 @@ Arguments
 - model: contains the variables with their values
 """
 function write_solution(fout, model::Model)
+	n = length(model.variables)
 	print(fout, "solution = (")
-	for x in model.variables
-		print(fout, string(x.value) * ", ")
-	end 
-	println(fout, ")\n")
-	
+	for i in 1:1:n-1
+		print(fout, string(model.variables[i].value) )
+	end
+	println(fout, string(model.variables[n]) * ")")
 	println(fout, "resolution_time = " * string(round(model.resolution_time, sigdigits=4)))
 	println(fout, "is_solved = " * string(model.solved) )
 end 

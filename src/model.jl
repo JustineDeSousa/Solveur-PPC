@@ -112,7 +112,7 @@ function add_constraint(model, z::Tuple{Variable,Variable}, couples)
 	push!(model.constraints, cstr)
 end
 
-function wrap(model::Model, (x,y)::Tuple{Variable,Variable}, constr)
+function wrapper(model::Model, (x,y)::Tuple{Variable,Variable}, constr)
 	couples = [(a,b) for a in x.domain for b in y.domain if constr(a,b)]
 	add_constraint(model, (x,y), couples)
 	return couples
@@ -181,7 +181,7 @@ end
 
 
 #ajout d'une contrainte 
-#wrap(model, (x,y), (x,y) -> x+y>=3)
+#wrapper(model, (x,y), (x,y) -> x+y>=3)
 
 
 

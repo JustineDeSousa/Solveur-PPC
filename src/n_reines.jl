@@ -1,5 +1,5 @@
 # cd("D:\\M2\\PPC\\projet\\Solveur-PPC")
-# include("n_reines.jl")
+# include("src\\n_reines.jl")
 
 include("resolution.jl")
 
@@ -19,7 +19,7 @@ function create_constraints!(model::Model,n::Int64)
 	for y in model.variables
 		for x in model.variables
 			if x!=y
-				wrap(model, (x,y), (a,b) -> a!=b)
+				wrapper(model, (x,y), (a,b) -> a!=b)
 			end
 		end
 	end
@@ -27,7 +27,7 @@ function create_constraints!(model::Model,n::Int64)
 		for i in 1:j-1
 			x = model.variables[j]
 			y = model.variables[i]
-			wrap(model, (x,y), (a,b) -> abs(a-b)!=(j-i))
+			wrapper(model, (x,y), (a,b) -> abs(a-b)!=(j-i))
 		end
 	end	
 	return model
