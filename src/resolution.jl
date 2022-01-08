@@ -304,52 +304,61 @@ function solve_instances(type_="queens", method="root")
 			model = creation_coloration(file)
 			
 			# For each resolution method
-			for rootId in rootMethod
-				for node in nodesMethod
-					for var in varSelectionMethod
-						for value in valueSelectionMathod
-							folder = resFolder * "coloration/root" * rootId * "_node" * node * "_varSelect" * var * "_valueSelect" * value 
-							if !isdir(folder)
-								println(pwd())
-								println(folder)
-								mkdir(folder)
-							end
-							outputFile = folder * "/" * SubString(file,1,length(file)-4) * ".res"
-							#println("root " * rootId)
-							# If the instance has not already been solved by this method
-							if !isfile(outputFile)
-								fout = open(outputFile, "w")  
-								
-								resolutionTime = -1
-								isOptimal = false
-
-								# Start a chronometer 
-								startingTime = time()
-								
-								# While the grid is not solved and less than 100 seconds are elapsed
-								while !isOptimal && resolutionTime < 100
-									solve!(model, rootId, node, var, value)
-									isOptimal  = model.solved
-									
-									# Stop the chronometer
-									resolutionTime = time() - startingTime
-								end
-								# Write the solution
-								write_solution(fout,model)
-								close(fout)
-							end
-				
-				
-
-
-							# Display the results obtained with the method on the current instance
-							#include("../"*outputFile)
-
-							 #println(resolutionFolder[methodId], " optimal: ", isOptimal)
-							 #println(resolutionFolder[methodId], " time: " * string(round(resolutionTime, sigdigits=2)) * "s\n")
-						end
-					end
+			for m in methodOptions
+			#for rootId in rootMethod
+			#	for node in nodesMethod
+			#		for var in varSelectionMethod
+			#			for value in valueSelectionMathod
+				print("---- " * method * " = " * m * " : ")
+				if method=="root"
+					root = m
+				elseif method=="nodes"
+					nodes = m
+				elseif method=="var_selection"
+					var_selection = m
+				elseif method=="value_selection"
+					value_selection = m
 				end
+				folder = resFolder * "coloration/" * method * "/" * m 
+				if !isdir(folder)
+					println(pwd())
+					println(folder)
+					mkdir(folder)
+				end
+				outputFile = folder * "/" * SubString(file,1,length(file)-4) * ".res"
+				#println("root " * rootId)
+				# If the instance has not already been solved by this method
+				if !isfile(outputFile)
+					fout = open(outputFile, "w")  
+								
+					resolutionTime = -1
+					isOptimal = false
+
+					# Start a chronometer 
+					startingTime = time()
+								
+					# While the grid is not solved and less than 100 seconds are elapsed
+					#while !isOptimal && resolutionTime < 100
+					solve!(model, root, nodes, var_selection, value_selection)
+					#isOptimal  = model.solved
+									
+					# Stop the chronometer
+					resolutionTime = time() - startingTime
+					#end
+					# Write the solution
+					write_solution(fout,model)
+					close(fout)
+				end
+				
+				
+
+				# Display the results obtained with the method on the current instance
+				#include("../"*outputFile)
+				#println(resolutionFolder[methodId], " optimal: ", isOptimal)
+				#println(resolutionFolder[methodId], " time: " * string(round(resolutionTime, sigdigits=2)) * "s\n")
+				#end
+				#end
+				#end
 			end
 		end 
 	end
