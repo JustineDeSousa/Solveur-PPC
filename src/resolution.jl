@@ -275,43 +275,51 @@ function solve_instances(type_="queens")
 			
 			# For each resolution method
 			for rootId in rootMethod
-				folder = resFolder * "coloration/root" * rootId
-				if !isdir(folder)
-					println(pwd())
-					println(folder)
-					mkdir(folder)
-				end
-				outputFile = folder * "/" * SubString(file,1,length(file)-4) * ".res"
-				#println("root " * rootId)
-				# If the instance has not already been solved by this method
-				if !isfile(outputFile)
-					fout = open(outputFile, "w")  
-					
-					resolutionTime = -1
-					isOptimal = false
+				for node in nodesMethod
+					for var in varSelectionMethod
+						for value in valueSelectionMathod
+							folder = resFolder * "coloration/root" * rootId * "_node" * node * "_varSelect" * var * "_valueSelect" * value 
+							if !isdir(folder)
+								println(pwd())
+								println(folder)
+								mkdir(folder)
+							end
+							outputFile = folder * "/" * SubString(file,1,length(file)-4) * ".res"
+							#println("root " * rootId)
+							# If the instance has not already been solved by this method
+							if !isfile(outputFile)
+								fout = open(outputFile, "w")  
+								
+								resolutionTime = -1
+								isOptimal = false
 
-					# Start a chronometer 
-					startingTime = time()
-					
-					# While the grid is not solved and less than 100 seconds are elapsed
-					while !isOptimal && resolutionTime < 100
-						solve!(model, rootId, "None", "None", "None")
-						isOptimal  = model.solved
-						
-						# Stop the chronometer
-						resolutionTime = time() - startingTime
+								# Start a chronometer 
+								startingTime = time()
+								
+								# While the grid is not solved and less than 100 seconds are elapsed
+								while !isOptimal && resolutionTime < 100
+									solve!(model, rootId, node, var, value)
+									isOptimal  = model.solved
+									
+									# Stop the chronometer
+									resolutionTime = time() - startingTime
+								end
+								# Write the solution
+								write_solution(fout,model)
+								close(fout)
+							end
+				
+				
+
+
+							# Display the results obtained with the method on the current instance
+							#include("../"*outputFile)
+
+							 #println(resolutionFolder[methodId], " optimal: ", isOptimal)
+							 #println(resolutionFolder[methodId], " time: " * string(round(resolutionTime, sigdigits=2)) * "s\n")
+						end
 					end
-					# Write the solution
-					write_solution(fout,model)
-					close(fout)
 				end
-
-
-				# Display the results obtained with the method on the current instance
-				#include("../"*outputFile)
-
-				 #println(resolutionFolder[methodId], " optimal: ", isOptimal)
-				 #println(resolutionFolder[methodId], " time: " * string(round(resolutionTime, sigdigits=2)) * "s\n")
 			end
 		end 
 	end
