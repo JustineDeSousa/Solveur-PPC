@@ -85,7 +85,6 @@ end
 
 # AC1
 function AC1!(model::Model)
-	println("AC1 : ")
 	term = false
 	while !term
 		term = true
@@ -93,7 +92,6 @@ function AC1!(model::Model)
 			(x,y) = cstr.var
 			for a in x.domain
 				if !is_supported(cstr, x, a)
-					println("(",x.name,", ", a, ") is not supported by ", y.name)
 					x.domain = filter!(v->v!=a, x.domain)
 				end
 			end
@@ -103,7 +101,6 @@ end
 
 #AC3
 function AC3!(model::Model)
-	println("AC3 : ")
 	aTester = Array{Constraint}(undef,0)
 	for cstr in model.constraints
 		push!(aTester, cstr)
@@ -114,7 +111,6 @@ function AC3!(model::Model)
 		(x,y) = cstr.var
 		for a in x.domain
 			if !is_supported(cstr, y, a)
-				println("(",x.name,", ", a, ") is not supported by ", y.name)
 				x.domain = filter!(x->x!=a, x.domain)
 				for cstr in constraints(model, x)
 					z = other(cstr, x)
@@ -132,7 +128,6 @@ end
 
 #AC4
 function initAC4!(model::Model)
-	println("initAC4 : ")
 	Q = []
 	S = Dict()
 	for x in model.variables
@@ -154,7 +149,6 @@ function initAC4!(model::Model)
 			end
 			count_[(x,y,a)] = total
 			if count_[(x,y,a)] == 0
-				println("(",x.name,", ", a, ") is not supported by ", y.name)
 				x.domain = filter!(v->v!=a, x.domain)
 				push!(Q, (x,a))
 			end
@@ -164,14 +158,12 @@ function initAC4!(model::Model)
 end
 
 function AC4!(model::Model)
-	println("AC4 : ")
 	Q, S, count_ = initAC4!(model)
 	while !isempty(Q)
 		(y,b) = pop!(Q) #we took a couple from list Q
 		for (x,a) in S[(y,b)]
 			count_[(x,y,a)] -= 1
 			if count_[(x,y,a)] == 0 && a in x.domain
-				println("(",x.name,", ", a, ") is not supported by ", y.name)
 				x.domain = filter!(v->v!=a, x.domain)
 				push!(Q, (x,a))
 			end
