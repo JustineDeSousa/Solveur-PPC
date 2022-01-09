@@ -61,9 +61,10 @@ end
 time_ = 100
 
 methods_=["root","nodes","varSelection","valueSelection"]
-for met in methods_
+#for met in methods_
+met="best"
 	solve_instances(time_,"coloration", met)
 	resultsArray("coloration", met)
 	performanceDiagram("coloration",met)
-end
+#end
 println("Reussie")

@@ -220,7 +220,7 @@ function solve_instances(time_=100, type_="queens", method="Best")
 	else
 		methodOptions = ["Best"]
 		root = "AC4"
-		nodes = "Fwrd"
+		nodes = "AC4"
 		varSelection = "domainMin"
 		valueSelection = "MaxConflicts"
 	end
