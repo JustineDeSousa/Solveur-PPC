@@ -227,7 +227,7 @@ function solve_instances(time_=100, type_="queens", method="Best")
                 
     # For each instance
 	if type_ == "queens"
-		for n in 16:30
+		for n in 31:50
 			println("\n-- Resolution of the ", n, " queens problem")
 			model = creation_queens(n)
 			for m in methodOptions

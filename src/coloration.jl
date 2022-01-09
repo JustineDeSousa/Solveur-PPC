@@ -58,13 +58,15 @@ function creation_coloration(instance::String)
 	return model
 end
 
+##### Solve all instances
 time_ = 100
-
+type_ = "coloration"
 methods_=["root","nodes","varSelection","valueSelection"]
+
 #for met in methods_
 met="best"
-	solve_instances(time_,"coloration", met)
-	resultsArray("coloration", met)
-	performanceDiagram("coloration",met)
+	solve_instances(time_,type_, met)
+	resultsArray(type_, met)
+	performanceDiagram(type_,met)
 #end
 println("Reussie")
