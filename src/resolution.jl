@@ -105,7 +105,7 @@ bactracking : options :
 			- minConflict, maxConflict, other(=in the order of the variables)
 """
 
-function Backtrack(model::Model, time_, var_instancie::Array{Variable,1}, root="AC4", nodes="Frwd", varSelection="domainMin", valueSelection="minConflict")
+function Backtrack(model::Model, time_, var_instancie::Array{Variable,1}, root="AC4", nodes="Frwd", varSelection="domainMin", valueSelection="maxConflict")
 	
 	if isempty(var_instancie) #Si on n'a pas encore commencé le backtrack
 		global nd_numero = 0

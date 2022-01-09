@@ -53,7 +53,7 @@ time_ = 100
 type_ = "queens"
 methods_=["root","nodes","varSelection","valueSelection"]
 for met in methods_
-	# solve_instances(time_,type_, met)
+	solve_instances(time_,type_, met)
 	resultsArray(type_, met)
 	performanceDiagram(type_,met)
 end

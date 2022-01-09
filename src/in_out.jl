@@ -224,7 +224,7 @@ function resultsArray(type_="queens", method="root")
 	"""
     println(fout, header)	# Replace the potential underscores '_' in file names
 
-    maxInstancePerPage = 35	# On each page an array will contain at most maxInstancePerPage lines with results
+    maxInstancePerPage = 32	# On each page an array will contain at most maxInstancePerPage lines with results
     id = 1
 
     # For each solved files
