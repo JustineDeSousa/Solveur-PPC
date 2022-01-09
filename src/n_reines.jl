@@ -38,12 +38,12 @@ function creation_queens(n::Int64)
 	return model
 end
 ############ Solve one instance
-# n=16
+# n=20
 # model = creation_queens(n)
 # time_ = 100
 # root = "AC4"
 # nodes = "Frwd"
-# varSelection = "None"
+# varSelection = "domainMin"
 # valueSelection = "None"
 # solve!(model, time_, root, nodes, varSelection, valueSelection)
 
@@ -52,9 +52,10 @@ end
 time_ = 100
 type_ = "queens"
 methods_=["root","nodes","varSelection","valueSelection"]
-for met in methods_
+# for met in methods_
+met = "Best"
 	solve_instances(time_,type_, met)
 	resultsArray(type_, met)
 	performanceDiagram(type_,met)
-end
+# end
 println("Reussie")

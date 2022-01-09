@@ -161,7 +161,6 @@ function Backtrack(model::Model, time_, var_instancie::Array{Variable,1}, root="
 		end
 		x.value = -1
 		var_instancie = filter!(y->y!=x, var_instancie)
-		#println(x)
 		
 		return false
 	end
@@ -192,7 +191,7 @@ The results are written in "res/options"
 
 Remark: If an instance has previously been solved it will not be solved again
 """
-function solve_instances(time_=100, type_="queens", method="root")
+function solve_instances(time_=100, type_="queens", method="Best")
 	println("solve_instances(", time_, ",", type_, ",", method, ")")
     dataFolder = "instances/"
     resFolder = "res/"
@@ -217,18 +216,23 @@ function solve_instances(time_=100, type_="queens", method="root")
 		methodOptions = ["None", "MinConflicts", "MaxConflicts"]
 		root = "AC4"
 		nodes = "Fwrd"
-		varSelection = "domainMin"
+		varSelection = "None"
 	else
-		error("Argument '" * method * "' is not right. Use 'root', 'nodes', 'varSelection' or 'valueSelection'.")
+		methodOptions = ["Best"]
+		root = "AC4"
+		nodes = "Fwrd"
+		varSelection = "domainMin"
+		valueSelection = "MaxConflicts"
 	end
                 
     # For each instance
 	if type_ == "queens"
-		for n in 5:20
+		for n in 16:30
 			println("\n-- Resolution of the ", n, " queens problem")
 			model = creation_queens(n)
 			for m in methodOptions
 				print("---- " * method * " = " * m * " : ")
+				folder = resFolder * "queens/" * method * "/" * m
 				if method=="root"
 					root = m
 				elseif method=="nodes"
@@ -237,8 +241,10 @@ function solve_instances(time_=100, type_="queens", method="root")
 					varSelection = m
 				elseif method=="valueSelection"
 					valueSelection = m
+				elseif method=="Best"
+					folder = resFolder * "queens/" * method
 				end
-				folder = resFolder * "queens/" * method * "/" * m
+				
 				if !isdir(folder)
 					mkdir(folder)
 				end
