@@ -105,10 +105,9 @@ bactracking : options :
 			- min_conflict, max_conflict, other(=in the order of the variables)
 """
 function Backtrack(model::Model, var_instancie::Array{Variable,1}, root="AC4", nodes="frwd", var_selection="domain_min", value_selection="min_conflict")
-	
 	if isempty(var_instancie) #Si on n'a pas encore commencé le backtrack
 		global nd_numero = 0
-		start = time()
+		global start = time()
 		if root == "AC3"
 			AC3!(model)
 		elseif root == "AC4"
@@ -132,6 +131,7 @@ function Backtrack(model::Model, var_instancie::Array{Variable,1}, root="AC4", n
 	if isempty(variables_non_instancie) #if all the variables are instantiated the problem is solved
 		model.solved = true
 		model.nb_nodes = nd_numero
+		#println(nd_numero)
         return true
 	end
 	
@@ -148,25 +148,27 @@ function Backtrack(model::Model, var_instancie::Array{Variable,1}, root="AC4", n
 	#print("Branche sur ")
 	nb_values = 0
 	value_selection!(model, variables_non_instancie, value_selection) #order the values of x.domain according to value_selection
-	for v in x.domain
-		nb_values += 1
-		x.value = v #add the new value to the instance
-		#println(x)
-		if nodes == "fwrd" || nodes == "AC3" || nodes == "AC4"
-			#We need to keep the domains for the ohter branches
-			domains = keeps_domains(model)
-			if nodes == "fwrd"
-				forward_checking!(model, var_instancie, x)
-			elseif nodes == "AC3"
-				AC3!(model)
-			elseif nodes == "AC4"
-				AC4!(model)
+	if time()-start<100 
+		for v in x.domain
+			nb_values += 1
+			x.value = v #add the new value to the instance
+			#println(x)
+			if nodes == "fwrd" || nodes == "AC3" || nodes == "AC4"
+				#We need to keep the domains for the ohter branches
+				domains = keeps_domains(model)
+				if nodes == "fwrd"
+					forward_checking!(model, var_instancie, x)
+				elseif nodes == "AC3"
+					AC3!(model)
+				elseif nodes == "AC4"
+					AC4!(model)
+				end
 			end
-		end
-		if Backtrack(model, var_instancie, root, nodes, var_selection, value_selection )
-			return true
-		elseif nodes == "fwrd" || nodes == "AC3" || nodes == "AC4"
-			back_domains(model, domains)
+			if Backtrack(model, var_instancie, root, nodes, var_selection, value_selection ) 
+				return true
+			elseif nodes == "fwrd" || nodes == "AC3" || nodes == "AC4"
+				back_domains(model, domains)
+			end
 		end
 	end
 	x.value = -1
@@ -191,7 +193,7 @@ function solve!(model::Model, root="AC4", nodes="fwrd", var_selection="domain_mi
 	
 	model.resolution_time = time() - starting_time
 	#println(model.variables)
-	write_solution(stdout,model)
+	#write_solution(stdout,model)
 	return b
 end
 """

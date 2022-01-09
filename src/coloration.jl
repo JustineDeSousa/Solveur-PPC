@@ -67,6 +67,10 @@ end
 # solve(model)
 
 #solve_coloration_instances()
-solve_instances("coloration", "root")
-resultsArray("coloration", "root")
-performanceDiagram("coloration","root")
+methods=["root","nodes","var_selection","value_selection"]
+for met in methods
+	solve_instances("coloration", met)
+	resultsArray("coloration", met)
+	performanceDiagram("coloration",met)
+end
+println("Reussie")
