@@ -1,5 +1,6 @@
 include("model.jl")
 using Plots
+
 """
 Write a solution in an output stream
 
@@ -35,7 +36,6 @@ Prerequisites:
 - Each text file contains a variable "resolution_time" and a variable "is_solved"
 """
 function performanceDiagram(type_="queens", method="root")
-
     resultFolder = "res/" * type_ * "/" * method * "/"
 	println("resultFolder = ", resultFolder)
     maxSize = 0# Maximal number of files in a subfolder
@@ -161,7 +161,7 @@ function resultsArray(type_="queens", method="root")
     # Print the latex file output
     println(fout, raw"""
 	\documentclass[main.tex]{subfiles}
-
+	\margin{0.5cm}{0.5cm}
 	\begin{document}
 	\thispagestyle{empty}
 	""")
@@ -170,8 +170,7 @@ function resultsArray(type_="queens", method="root")
 	\begin{landscape}
 	\begin{center}
 	\renewcommand{\arraystretch}{1.4} 
-	\begin{tabular}{l
-	"""
+	\begin{tabular}{l"""
 
     folderName = Array{String, 1}()	# Name of the subfolder of the result folder (i.e, the resolution methods used)
     solvedInstances = Array{String, 1}()# List of all the instances solved by at least one resolution method
@@ -200,7 +199,7 @@ function resultsArray(type_="queens", method="root")
         header *= "cccc"
     end
 
-    header *= "}\n\t\\hline\n"
+    header *= "}\n\t\\hline\n\\textbf{" * method * " method :}"
 
     # Create the header line which contains the methods name
     for folder in folderName
