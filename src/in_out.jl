@@ -161,7 +161,7 @@ function resultsArray(type_="queens", method="root")
     # Print the latex file output
     println(fout, raw"""
 	\documentclass[main.tex]{subfiles}
-	\margin{0.5cm}{0.5cm}
+	\newmargin{0.5cm}{0.5cm}
 	\begin{document}
 	\thispagestyle{empty}
 	""")
