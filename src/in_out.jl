@@ -170,7 +170,7 @@ function resultsArray(type_="queens", method="root")
 	\begin{landscape}
 	\begin{center}
 	\renewcommand{\arraystretch}{1.4} 
-	\begin{tabular}{l"""
+	\begin{tabular}{l|"""
 
     folderName = Array{String, 1}()	# Name of the subfolder of the result folder (i.e, the resolution methods used)
     solvedInstances = Array{String, 1}()# List of all the instances solved by at least one resolution method
@@ -196,7 +196,7 @@ function resultsArray(type_="queens", method="root")
 
     # For each resolution method, add two columns in the array
     for folder in folderName
-        header *= "cccc"
+        header *= "cccc|"
     end
 
     header *= "}\n\t\\hline\n\\textbf{" * method * " method :}"
