@@ -249,7 +249,7 @@ function resultsArray(type_="queens", method="root")
             else
                 print(fout, " & - & - ")
             end
-			println(fout, " & ", round(resolution_time, digits=2), " & ", nb_nodes, " & ", round((resolution_time-root_time)/nb_nodes, digits=2))
+			println(fout, " & ", round(resolution_time, digits=2), " & ", nb_nodes, " & ", round((resolution_time-root_time)/nb_nodes, sigdigits=2))
         end
         println(fout, "\\\\")
 
