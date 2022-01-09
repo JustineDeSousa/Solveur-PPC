@@ -49,13 +49,29 @@ end
 
 
 ############ Solve all instances
-time_ = 100
+time_ = 1000
 type_ = "queens"
-methods_=["root","nodes","varSelection","valueSelection"]
+#methods_=["root","nodes","varSelection","valueSelection"]
 # for met in methods_
-met = "Best"
-	solve_instances(time_,type_, met)
-	resultsArray(type_, met)
-	performanceDiagram(type_,met)
+#met = "Best"
+	#solve_instances(time_,type_, met)
+	#resultsArray(type_, met)
+	#performanceDiagram(type_,met)
 # end
+##########Solve one instance
+print("How many queens?")
+n = parse( Int64, readline(stdin) )
+print("root ? (AC3, AC4, 0(=nothing) )")
+root = readline(stdin)
+print("nodes ? (fwrd, AC3, AC4, 0(=nothing) )")
+nodes = readline(stdin)
+print("Heuristic of selection of variables ? (0(=in order), random, average, domain_min, unbound)")
+varSelection = readline(stdin) 
+print("Heuristic of selection of value ? (0(=in order), MinConflicts, MaxConflicts)")
+valueSelection = readline(stdin) 
+model = creation_queens(n)
+solve!(model, time_, root, nodes, varSelection, valueSelection)
+
+
+
 println("Reussie")
