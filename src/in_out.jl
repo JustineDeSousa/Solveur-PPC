@@ -170,7 +170,7 @@ function resultsArray(type_="queens", method="root")
 	\begin{landscape}
 	\begin{center}
 	\renewcommand{\arraystretch}{1.4} 
-	\begin{tabular}{l|"""
+	\begin{tabular}{|l|"""
 
     folderName = Array{String, 1}()	# Name of the subfolder of the result folder (i.e, the resolution methods used)
     solvedInstances = Array{String, 1}()# List of all the instances solved by at least one resolution method
@@ -200,6 +200,8 @@ function resultsArray(type_="queens", method="root")
     end
 
     header *= "}\n\t\\hline\n\\textbf{" * method * " method :}"
+	replace(header, "_" => "\\_")
+	println(header)
 
     # Create the header line which contains the methods name
     for folder in folderName
@@ -220,7 +222,7 @@ function resultsArray(type_="queens", method="root")
 	\end{center}
 	\end{landscape}
 	"""
-    println(fout, header)
+    println(fout, header)	# Replace the potential underscores '_' in file names
 
     maxInstancePerPage = 35	# On each page an array will contain at most maxInstancePerPage lines with results
     id = 1

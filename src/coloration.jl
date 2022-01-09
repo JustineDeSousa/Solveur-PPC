@@ -60,7 +60,7 @@ end
 
 time_ = 100
 
-methods_=["root","nodes","var_selection","value_selection"]
+methods_=["root","nodes","varSelection","valueSelection"]
 for met in methods_
 	solve_instances(time_,"coloration", met)
 	resultsArray("coloration", met)

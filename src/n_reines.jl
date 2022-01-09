@@ -43,17 +43,17 @@ end
 # time_ = 100
 # root = "AC4"
 # nodes = "Frwd"
-# var_selection = "None"
-# value_selection = "None"
-# solve!(model, time_, root, nodes, var_selection, value_selection)
+# varSelection = "None"
+# valueSelection = "None"
+# solve!(model, time_, root, nodes, varSelection, valueSelection)
 
 
 ############ Solve all instances
 time_ = 100
 type_ = "queens"
-methods_=["root","nodes","var_selection","value_selection"]
+methods_=["root","nodes","varSelection","valueSelection"]
 for met in methods_
-	solve_instances(time_,type_, met)
+	# solve_instances(time_,type_, met)
 	resultsArray(type_, met)
 	performanceDiagram(type_,met)
 end

@@ -45,7 +45,7 @@ Branchement sur les valeurs
 	-	option : minConflict, maxConflict, other(=in the order of the variables)
 """
 
-function value_selection!(model::Model, var_non_instancie::Array{Variable,1}, option)	
+function valueSelection!(model::Model, var_non_instancie::Array{Variable,1}, option)	
 	if option == "minConflict"
 		for x in var_non_instancie
 			domains=[]
@@ -98,14 +98,14 @@ bactracking : options :
 	
 	-	root : 0(means nothing), AC3, AC4 ?
 	- 	nodes : 0(means nothing), Frwd, AC3, AC4 ?
-	-	var_selection : mode de selection des variables : 
+	-	varSelection : mode de selection des variables : 
 			-	"random", "average", "domainMin", "unbound", 
 				any other would do it in the order of variables
-	-	value_selection : mode de selection des valeurs :
+	-	valueSelection : mode de selection des valeurs :
 			- minConflict, maxConflict, other(=in the order of the variables)
 """
 
-function Backtrack(model::Model, time_, var_instancie::Array{Variable,1}, root="AC4", nodes="Frwd", var_selection="domainMin", value_selection="minConflict")
+function Backtrack(model::Model, time_, var_instancie::Array{Variable,1}, root="AC4", nodes="Frwd", varSelection="domainMin", valueSelection="minConflict")
 	
 	if isempty(var_instancie) #Si on n'a pas encore commencé le backtrack
 		global nd_numero = 0
@@ -134,10 +134,10 @@ function Backtrack(model::Model, time_, var_instancie::Array{Variable,1}, root="
 			return true
 		end
 			
-		x = variable_selection(model,variables_non_instancie, var_selection) #variable to branch
+		x = variable_selection(model,variables_non_instancie, varSelection) #variable to branch
 		push!(var_instancie, x) #add the new variable to branch to the variables instantiated
 		
-		value_selection!(model, variables_non_instancie, value_selection) #order the values of x.domain according to value_selection
+		valueSelection!(model, variables_non_instancie, valueSelection) #order the values of x.domain according to valueSelection
 		nb_values = 0
 		for v in x.domain
 			nb_values += 1
@@ -153,7 +153,7 @@ function Backtrack(model::Model, time_, var_instancie::Array{Variable,1}, root="
 					AC4!(model)
 				end
 			end
-			if Backtrack(model, time_, var_instancie, root, nodes, var_selection, value_selection )
+			if Backtrack(model, time_, var_instancie, root, nodes, varSelection, valueSelection )
 				return true
 			elseif nodes == "Fwrd" || nodes == "AC3" || nodes == "AC4"
 				back_domains(model, domains)
@@ -171,12 +171,12 @@ end
 """
 Solve one instance
 """
-function solve!(model::Model, time_=100, root="AC4", nodes="Fwrd", var_selection="domainMin", value_selection="minConflict")
-	println(" solve!(", time_, ",", root, ",", nodes, ",", var_selection, ",", value_selection, ")")
+function solve!(model::Model, time_=100, root="AC4", nodes="Fwrd", varSelection="domainMin", valueSelection="minConflict")
+	println(" solve!(", time_, ",", root, ",", nodes, ",", varSelection, ",", valueSelection, ")")
 	var_instancie = Array{Variable,1}(undef,0)
 	
 	starting_time = time()
-	b=Backtrack(model, time_, var_instancie, root, nodes, var_selection, value_selection)
+	b=Backtrack(model, time_, var_instancie, root, nodes, varSelection, valueSelection)
 	
 	model.resolution_time = time() - starting_time
 	model.nb_nodes = nd_numero
@@ -201,25 +201,25 @@ function solve_instances(time_=100, type_="queens", method="root")
 	if method == "root"
 		methodOptions = ["None", "AC3", "AC4"]
 		nodes = "None"
-		var_selection = "None"
-		value_selection = "None"
+		varSelection = "None"
+		valueSelection = "None"
 	elseif method == "nodes"
 		methodOptions = ["None", "Fwrd", "AC3", "AC4"]
 		root = "AC4"
-		var_selection = "None"
-		value_selection = "None"
-	elseif method == "var_selection"
+		varSelection = "None"
+		valueSelection = "None"
+	elseif method == "varSelection"
 		methodOptions = ["None", "domainMin"]
 		root = "AC4"
 		nodes = "Fwrd"
-		value_selection = "None"
-	elseif method == "value_selection"
+		valueSelection = "None"
+	elseif method == "valueSelection"
 		methodOptions = ["None", "MinConflicts", "MaxConflicts"]
 		root = "AC4"
 		nodes = "Fwrd"
-		var_selection = "domainMin"
+		varSelection = "domainMin"
 	else
-		error("Argument '" * method * "' is not right. Use 'root', 'nodes', 'var_selection' or 'value_selection'.")
+		error("Argument '" * method * "' is not right. Use 'root', 'nodes', 'varSelection' or 'valueSelection'.")
 	end
                 
     # For each instance
@@ -233,10 +233,10 @@ function solve_instances(time_=100, type_="queens", method="root")
 					root = m
 				elseif method=="nodes"
 					nodes = m
-				elseif method=="var_selection"
-					var_selection = m
-				elseif method=="value_selection"
-					value_selection = m
+				elseif method=="varSelection"
+					varSelection = m
+				elseif method=="valueSelection"
+					valueSelection = m
 				end
 				folder = resFolder * "queens/" * method * "/" * m
 				if !isdir(folder)
@@ -245,7 +245,7 @@ function solve_instances(time_=100, type_="queens", method="root")
 				outputFile = folder * "/queens" * string(n) * ".res"
 				if !isfile(outputFile)
 					fout = open(outputFile, "w")
-					solve!(model,time_, root, nodes, var_selection, value_selection) 
+					solve!(model,time_, root, nodes, varSelection, valueSelection) 
 					write_solution(fout,model)
 					close(fout)
 				end
@@ -264,10 +264,10 @@ function solve_instances(time_=100, type_="queens", method="root")
 					root = m
 				elseif method=="nodes"
 					nodes = m
-				elseif method=="var_selection"
-					var_selection = m
-				elseif method=="value_selection"
-					value_selection = m
+				elseif method=="varSelection"
+					varSelection = m
+				elseif method=="valueSelection"
+					valueSelection = m
 				end
 				folder = resFolder * "coloration/" * method * "/" * m 
 				if !isdir(folder)
@@ -280,7 +280,7 @@ function solve_instances(time_=100, type_="queens", method="root")
 				# If the instance has not already been solved by this method
 				if !isfile(outputFile)
 					fout = open(outputFile, "w")  
-					solve!(model, time_, root, nodes, var_selection, value_selection)
+					solve!(model, time_, root, nodes, varSelection, valueSelection)
 					write_solution(fout,model)
 					close(fout)
 				end
