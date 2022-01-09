@@ -37,4 +37,5 @@ end
 model = creation_cars()
 
 ######## solve ########
-solve!(model, "None", "None", "None", "None")
+time_ = 100
+solve!(model, time_, "AC4", "Fwrd", "None", "None")

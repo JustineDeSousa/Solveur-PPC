@@ -10,7 +10,7 @@ include("in_out.jl")
 
 """
 Branchement sur les variables
-	-	option : random, average, domain_min, unbound, other(=in the order of the variables)
+	-	option : random, average, domainMin, unbound, other(=in the order of the variables)
 """
 function variable_selection(model::Model,var_non_instancie::Array{Variable,1}, option)
 	if option == "random"
@@ -19,7 +19,7 @@ function variable_selection(model::Model,var_non_instancie::Array{Variable,1}, o
 	elseif option == "average"
 		moyen = div(1 + length(var_non_instancie), 2)
 		return var_non_instancie[moyen]
-	elseif option == "domain_min"
+	elseif option == "domainMin"
 		min_var = var_non_instancie[1]
 		for var in var_non_instancie
 			if length(var.domain) < length(min_var.domain)
@@ -42,11 +42,11 @@ function variable_selection(model::Model,var_non_instancie::Array{Variable,1}, o
 end
 """
 Branchement sur les valeurs
-	-	option : min_conflict, max_conflict, other(=in the order of the variables)
+	-	option : minConflict, maxConflict, other(=in the order of the variables)
 """
 
 function value_selection!(model::Model, var_non_instancie::Array{Variable,1}, option)	
-	if option == "min_conflict"
+	if option == "minConflict"
 		for x in var_non_instancie
 			domains=[]
 			cstr=number_constr(model, x)
@@ -66,7 +66,7 @@ function value_selection!(model::Model, var_non_instancie::Array{Variable,1}, op
 			x.domain=domains
 		end
 	
-	elseif option=="max_conflict"	
+	elseif option=="maxConflict"	
 		for x in var_non_instancie
 			domains=[]
 			cstr=number_constr(model, x)
@@ -97,66 +97,55 @@ end
 bactracking : options : 
 	
 	-	root : 0(means nothing), AC3, AC4 ?
-	- 	nodes : 0(means nothing), frwd, AC3, AC4 ?
+	- 	nodes : 0(means nothing), Frwd, AC3, AC4 ?
 	-	var_selection : mode de selection des variables : 
-			-	"random", "average", "domain_min", "unbound", 
+			-	"random", "average", "domainMin", "unbound", 
 				any other would do it in the order of variables
 	-	value_selection : mode de selection des valeurs :
-			- min_conflict, max_conflict, other(=in the order of the variables)
+			- minConflict, maxConflict, other(=in the order of the variables)
 """
-function Backtrack(model::Model, var_instancie::Array{Variable,1}, root="AC4", nodes="frwd", var_selection="domain_min", value_selection="min_conflict")
+
+function Backtrack(model::Model, time_, var_instancie::Array{Variable,1}, root="AC4", nodes="Frwd", var_selection="domainMin", value_selection="minConflict")
+	
 	if isempty(var_instancie) #Si on n'a pas encore commencé le backtrack
 		global nd_numero = 0
-		global start = time()
+		start_root = time()
 		if root == "AC3"
 			AC3!(model)
 		elseif root == "AC4"
 			AC4!(model)
 		end
-		model.root_time = time() - start
+		model.root_time = time() - start_root
+		global start = time()
 	end
 	
 	nd_numero += 1
-	# if rem(nd_numero,1000) == 0
-		# println(" ##### node ", nd_numero, ": ")
-	# end
-	
-	if !verification(model, var_instancie) #Si une contrainte est violée parmi les variables déjà instanciées
-        #println("the constraints are not verified")
-		return false
-	end
-	
-	variables_non_instancie = setdiff(model.variables, var_instancie) #make a set with the variables that are not instantiated
-	
-	if isempty(variables_non_instancie) #if all the variables are instantiated the problem is solved
-		model.solved = true
-		model.nb_nodes = nd_numero
-		#println(nd_numero)
-        return true
-	end
-	
-	if !is_consistent(model)
-		#println("Not arc-consistent")
-		return false
-	else
-		#println("Model is consistent")
-	end
-	
-	
-	x = variable_selection(model,variables_non_instancie, var_selection) #variable to branch
-	push!(var_instancie, x) #add the new variable to branch to the variables instantiated
-	#print("Branche sur ")
-	nb_values = 0
-	value_selection!(model, variables_non_instancie, value_selection) #order the values of x.domain according to value_selection
-	if time()-start<100 
+
+	while time()-start < time_
+		if !verification(model, var_instancie) #Si une contrainte est violée parmi les variables déjà instanciées
+			return false
+		end
+		if !is_consistent(model)
+			return false
+		end
+		variables_non_instancie = setdiff(model.variables, var_instancie) #make a set with the variables that are not instantiated
+		if isempty(variables_non_instancie) #if all the variables are instantiated the problem is solved
+			model.solved = true
+			return true
+		end
+			
+		x = variable_selection(model,variables_non_instancie, var_selection) #variable to branch
+		push!(var_instancie, x) #add the new variable to branch to the variables instantiated
+		
+		value_selection!(model, variables_non_instancie, value_selection) #order the values of x.domain according to value_selection
+		nb_values = 0
 		for v in x.domain
 			nb_values += 1
 			x.value = v #add the new value to the instance
-			#println(x)
-			if nodes == "fwrd" || nodes == "AC3" || nodes == "AC4"
+			if nodes == "Fwrd" || nodes == "AC3" || nodes == "AC4"
 				#We need to keep the domains for the ohter branches
 				domains = keeps_domains(model)
-				if nodes == "fwrd"
+				if nodes == "Fwrd"
 					forward_checking!(model, var_instancie, x)
 				elseif nodes == "AC3"
 					AC3!(model)
@@ -164,36 +153,36 @@ function Backtrack(model::Model, var_instancie::Array{Variable,1}, root="AC4", n
 					AC4!(model)
 				end
 			end
-			if Backtrack(model, var_instancie, root, nodes, var_selection, value_selection ) 
+			if Backtrack(model, time_, var_instancie, root, nodes, var_selection, value_selection )
 				return true
-			elseif nodes == "fwrd" || nodes == "AC3" || nodes == "AC4"
+			elseif nodes == "Fwrd" || nodes == "AC3" || nodes == "AC4"
 				back_domains(model, domains)
 			end
 		end
+		x.value = -1
+		var_instancie = filter!(y->y!=x, var_instancie)
+		#println(x)
+		
+		return false
 	end
-	x.value = -1
-	var_instancie = filter!(y->y!=x, var_instancie)
-	#println(x)
-	
-    return false
+	return false
 end
 
 """
 Solve one instance
 """
-function solve!(model::Model, root="AC4", nodes="fwrd", var_selection="domain_min", value_selection="min_conflict")
-	println(" solve!(", root, ",", nodes, ",", var_selection, ",", value_selection, ")")
+function solve!(model::Model, time_=100, root="AC4", nodes="Fwrd", var_selection="domainMin", value_selection="minConflict")
+	println(" solve!(", time_, ",", root, ",", nodes, ",", var_selection, ",", value_selection, ")")
 	var_instancie = Array{Variable,1}(undef,0)
 	
 	starting_time = time()
-	
-	b=Backtrack(model, var_instancie, root, nodes, var_selection, value_selection)
-	
-	println("\nNb de noeuds parcourus : ", nd_numero, "\n")
+	b=Backtrack(model, time_, var_instancie, root, nodes, var_selection, value_selection)
 	
 	model.resolution_time = time() - starting_time
-	#println(model.variables)
-	#write_solution(stdout,model)
+	model.nb_nodes = nd_numero
+
+	println("\nNb de noeuds parcourus : ", model.nb_nodes, "\n")
+	write_solution(stdout,model)
 	return b
 end
 """
@@ -203,8 +192,8 @@ The results are written in "res/options"
 
 Remark: If an instance has previously been solved it will not be solved again
 """
-function solve_instances(type_="queens", method="root")
-	println("solve_instances(" * type_ * "," * method * ")")
+function solve_instances(time_=100, type_="queens", method="root")
+	println("solve_instances(", time_, ",", type_, ",", method, ")")
     dataFolder = "instances/"
     resFolder = "res/"
 
@@ -232,38 +221,10 @@ function solve_instances(type_="queens", method="root")
 	else
 		error("Argument '" * method * "' is not right. Use 'root', 'nodes', 'var_selection' or 'value_selection'.")
 	end
-    
-
-	
-	
-	
-    # Array which contains the result folder of each resolution method
-    # resolutionFolder = []
-	# for r in rootMethod
-		# push!(resolutionFolder, resFolder*r)
-	# end
-	# for s in selectionMethod
-		# for r in rootMethod
-			# for n in nodesMethod
-				# push!( resolutionFolder, resFolder * s * r * n)
-			# end
-		# end
-	# end
-
-    # Create each result folder if it does not exist
-    # for folder in resolutionFolder
-        # if !isdir(folder)
-			# println(folder)
-            # mkdir(folder)
-        # end
-    # end
-            
-    global isOptimal = false
-    global resolutionTime = -1
-
+                
     # For each instance
 	if type_ == "queens"
-		for n in 5:15
+		for n in 5:20
 			println("\n-- Resolution of the ", n, " queens problem")
 			model = creation_queens(n)
 			for m in methodOptions
@@ -279,21 +240,12 @@ function solve_instances(type_="queens", method="root")
 				end
 				folder = resFolder * "queens/" * method * "/" * m
 				if !isdir(folder)
-					println(pwd())
-					println(folder)
 					mkdir(folder)
 				end
 				outputFile = folder * "/queens" * string(n) * ".res"
 				if !isfile(outputFile)
 					fout = open(outputFile, "w")
-					resolutionTime = -1
-					isOptimal = false 
-					startingTime = time()
-					# While the grid is not solved and less than 100 seconds are elapsed
-					#while !isOptimal && resolutionTime < 100
-						solve!(model, root, nodes, var_selection, value_selection) #Il faudrait rajouter une cte de temps
-					#end
-					# Write the solution
+					solve!(model,time_, root, nodes, var_selection, value_selection) 
 					write_solution(fout,model)
 					close(fout)
 				end
@@ -307,10 +259,6 @@ function solve_instances(type_="queens", method="root")
 			
 			# For each resolution method
 			for m in methodOptions
-			#for rootId in rootMethod
-			#	for node in nodesMethod
-			#		for var in varSelectionMethod
-			#			for value in valueSelectionMathod
 				print("---- " * method * " = " * m * " : ")
 				if method=="root"
 					root = m
@@ -332,35 +280,10 @@ function solve_instances(type_="queens", method="root")
 				# If the instance has not already been solved by this method
 				if !isfile(outputFile)
 					fout = open(outputFile, "w")  
-								
-					resolutionTime = -1
-					isOptimal = false
-
-					# Start a chronometer 
-					startingTime = time()
-								
-					# While the grid is not solved and less than 100 seconds are elapsed
-					#while !isOptimal && resolutionTime < 100
-					solve!(model, root, nodes, var_selection, value_selection)
-					#isOptimal  = model.solved
-									
-					# Stop the chronometer
-					resolutionTime = time() - startingTime
-					#end
-					# Write the solution
+					solve!(model, time_, root, nodes, var_selection, value_selection)
 					write_solution(fout,model)
 					close(fout)
 				end
-				
-				
-
-				# Display the results obtained with the method on the current instance
-				#include("../"*outputFile)
-				#println(resolutionFolder[methodId], " optimal: ", isOptimal)
-				#println(resolutionFolder[methodId], " time: " * string(round(resolutionTime, sigdigits=2)) * "s\n")
-				#end
-				#end
-				#end
 			end
 		end 
 	end

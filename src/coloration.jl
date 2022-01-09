@@ -58,18 +58,11 @@ function creation_coloration(instance::String)
 	return model
 end
 
-###### Def model
-# println("Insert name of file")
-# instance = readline(stdin)
-# model = creation_coloration(instance)
+time_ = 100
 
-###### Solve
-# solve(model)
-
-#solve_coloration_instances()
-methods=["root","nodes","var_selection","value_selection"]
-for met in methods
-	solve_instances("coloration", met)
+methods_=["root","nodes","var_selection","value_selection"]
+for met in methods_
+	solve_instances(time_,"coloration", met)
 	resultsArray("coloration", met)
 	performanceDiagram("coloration",met)
 end

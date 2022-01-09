@@ -1,30 +1,82 @@
 \documentclass[main.tex]{subfiles}
-
-\setlength{\hoffset}{-18pt}
-\setlength{\oddsidemargin}{0pt} % Marge gauche sur pages impaires
-\setlength{\evensidemargin}{9pt} % Marge gauche sur pages paires
-\setlength{\marginparwidth}{54pt} % Largeur de note dans la marge
-\setlength{\textwidth}{481pt} % Largeur de la zone de texte (17cm)
-\setlength{\voffset}{-18pt} % Bon pour DOS
-\setlength{\marginparsep}{7pt} % Séparation de la marge
-\setlength{\topmargin}{0pt} % Pas de marge en haut
-\setlength{\headheight}{13pt} % Haut de page
-\setlength{\headsep}{10pt} % Entre le haut de page et le texte
-\setlength{\footskip}{27pt} % Bas de page + séparation
-\setlength{\textheight}{668pt} % Hauteur de la zone de texte (25cm)
-
+\margin{1cm}{1cm}
 \begin{document}
+\thispagestyle{empty}
 
+\begin{landscape}
 \begin{center}
 \renewcommand{\arraystretch}{1.4} 
-\begin{tabular}{l
-}
+\begin{tabular}{lcccccccccccc}
 	\hline
-\\
-\textbf{Instance} \\\hline
+	extbf{root method :} & \multicolumn{4}{c}{\textbf{AC3}} & \multicolumn{4}{c}{\textbf{AC4}} & \multicolumn{4}{c}{\textbf{None}}\\
+\textbf{Instance}  & \textbf{Solved ?} & \textbf{(s)} & \textbf{Nodes} & \textbf{(s)/Nd} & \textbf{Solved ?} & \textbf{(s)} & \textbf{Nodes} & \textbf{(s)/Nd} & \textbf{Solved ?} & \textbf{(s)} & \textbf{Nodes} & \textbf{(s)/Nd}\\\hline
 
+queens10.res & $\times$ & 0.19 & 976 & 0.0
+ & $\times$ & 0.27 & 976 & 0.0
+ & $\times$ & 0.2 & 976 & 0.0
+\\
+queens11.res & $\times$ & 0.15 & 518 & 0.0
+ & $\times$ & 0.17 & 518 & 0.0
+ & $\times$ & 0.17 & 518 & 0.0
+\\
+queens12.res & $\times$ & 1.41 & 3067 & 0.0
+ & $\times$ & 1.36 & 3067 & 0.0
+ & $\times$ & 1.31 & 3067 & 0.0
+\\
+queens13.res & $\times$ & 0.78 & 1366 & 0.0
+ & $\times$ & 0.8 & 1366 & 0.0
+ & $\times$ & 0.76 & 1366 & 0.0
+\\
+queens14.res & $\times$ & 22.32 & 26496 & 0.0
+ & $\times$ & 22.79 & 26496 & 0.0
+ & $\times$ & 22.04 & 26496 & 0.0
+\\
+queens15.res & $\times$ & 23.06 & 20281 & 0.0
+ & $\times$ & 21.94 & 20281 & 0.0
+ & $\times$ & 21.6 & 20281 & 0.0
+\\
+queens16.res &  & 100.0 & 70769 & 0.0
+ &  & 100.06 & 71905 & 0.0
+ &  & 100.0 & 67441 & 0.0
+\\
+queens17.res &  & 100.0 & 57121 & 0.0
+ &  & 100.06 & 56356 & 0.0
+ &  & 100.0 & 55489 & 0.0
+\\
+queens18.res &  & 100.0 & 44299 & 0.0
+ &  & 100.08 & 43831 & 0.0
+ &  & 100.0 & 45289 & 0.0
+\\
+queens19.res &  & 100.0 & 34068 & 0.0
+ &  & 100.12 & 32453 & 0.0
+ &  & 100.01 & 34638 & 0.0
+\\
+queens20.res &  & 100.0 & 24941 & 0.0
+ &  & 100.13 & 26681 & 0.0
+ &  & 100.0 & 27241 & 0.0
+\\
+queens5.res & $\times$ & 0.0 & 16 & 0.0
+ & $\times$ & 0.03 & 16 & 0.0
+ & $\times$ & 0.19 & 16 & 0.01
+\\
+queens6.res & $\times$ & 0.02 & 172 & 0.0
+ & $\times$ & 0.0 & 172 & 0.0
+ & $\times$ & 0.0 & 172 & 0.0
+\\
+queens7.res & $\times$ & 0.01 & 43 & 0.0
+ & $\times$ & 0.02 & 43 & 0.0
+ & $\times$ & 0.0 & 43 & 0.0
+\\
+queens8.res & $\times$ & 0.08 & 877 & 0.0
+ & $\times$ & 0.09 & 877 & 0.0
+ & $\times$ & 0.11 & 877 & 0.0
+\\
+queens9.res & $\times$ & 0.05 & 334 & 0.0
+ & $\times$ & 0.05 & 334 & 0.0
+ & $\times$ & 0.05 & 334 & 0.0
+\\
 \hline\end{tabular}
 \end{center}
-
+\end{landscape}
 
 \end{document}

@@ -37,10 +37,24 @@ function creation_queens(n::Int64)
 	create_constraints!(model,n)
 	return model
 end
+############ Solve one instance
+# n=16
+# model = creation_queens(n)
+# time_ = 100
+# root = "AC4"
+# nodes = "Frwd"
+# var_selection = "None"
+# value_selection = "None"
+# solve!(model, time_, root, nodes, var_selection, value_selection)
 
-############ Solve
+
+############ Solve all instances
+time_ = 100
 type_ = "queens"
-method = "nodes"
-#solve_instances(type_, method)
-resultsArray(type_, method)
-#performanceDiagram(type_, method)
+methods_=["root","nodes","var_selection","value_selection"]
+for met in methods_
+	solve_instances(time_,type_, met)
+	resultsArray(type_, met)
+	performanceDiagram(type_,met)
+end
+println("Reussie")
