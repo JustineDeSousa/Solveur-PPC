@@ -93,6 +93,7 @@ function AC1!(model::Model)
 			for a in x.domain
 				if !is_supported(cstr, x, a)
 					x.domain = filter!(v->v!=a, x.domain)
+					term = false
 				end
 			end
 		end
@@ -150,6 +151,7 @@ function initAC4!(model::Model)
 			count_[(x,y,a)] = total
 			if count_[(x,y,a)] == 0
 				x.domain = filter!(v->v!=a, x.domain)
+				println("(", x.name, ", ", a, ") isnt supported by ", y.name)
 				push!(Q, (x,a))
 			end
 		end
